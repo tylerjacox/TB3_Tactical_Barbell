@@ -109,7 +109,7 @@ export function Login({ onForgotPassword, onSignUp }: { onForgotPassword: () => 
   return (
     <div class="auth-screen">
       <div class="auth-card">
-        <h1 class="auth-title">TB3</h1>
+        <h1 class="auth-title tb3-brand">TB3</h1>
         <p class="auth-subtitle">Sign in to sync your training data.</p>
 
         <form onSubmit={handleSignIn}>

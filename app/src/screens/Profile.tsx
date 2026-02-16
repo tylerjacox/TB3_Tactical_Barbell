@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 import { appData, updateAppData, currentLifts } from '../state';
 import { LIFT_NAMES, generateId } from '../types';
 import type { OneRepMaxTest } from '../types';
@@ -7,9 +7,11 @@ import { PercentageTable } from '../components/PercentageTable';
 import { PlateInventoryEditor } from '../components/PlateInventoryEditor';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { shareExport, pickFile, validateImport, performImport } from '../services/exportImport';
-import { signOut } from '../services/auth';
+import { isSpeechAvailable, getAvailableVoices, speakTest } from '../services/feedback';
+import { signOut, authState } from '../services/auth';
 import { clearAllData } from '../services/storage';
 import { navigate } from '../router';
+import { syncState, performSync } from '../services/sync';
 
 export function Profile() {
   const profile = appData.value.profile;
@@ -85,6 +87,11 @@ export function Profile() {
     <div class="screen">
       <div class="screen-header">
         <h1>Profile</h1>
+        {authState.value.user?.email && (
+          <p style={{ fontSize: 14, color: 'var(--muted)', marginTop: 2 }}>
+            {authState.value.user.email}
+          </p>
+        )}
       </div>
 
       {/* 1RM Entry */}
@@ -230,6 +237,8 @@ export function Profile() {
             ))}
           </div>
         </div>
+
+        {isSpeechAvailable() && <VoiceSettings profile={profile} />}
       </div>
 
       {/* Plate Inventory */}
@@ -253,6 +262,25 @@ export function Profile() {
             profile: { ...d.profile, plateInventoryBelt: inv, lastModified: new Date().toISOString() },
           }))}
         />
+      </div>
+
+      {/* Sync */}
+      <div class="settings-group">
+        <div class="settings-group-title">Sync</div>
+        <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.6 }}>
+          <div>Status: {syncState.value.isSyncing ? 'Syncing...' : 'Idle'}</div>
+          <div>Last synced: {syncState.value.lastSyncedAt ? new Date(syncState.value.lastSyncedAt).toLocaleString() : 'Never'}</div>
+          <div>Sessions: {appData.value.sessionHistory.length}</div>
+          {syncState.value.error && <div style={{ color: 'var(--danger)' }}>Error: {syncState.value.error}</div>}
+        </div>
+        <button
+          class="btn btn-secondary"
+          style={{ width: '100%', marginTop: 8 }}
+          onClick={() => performSync()}
+          disabled={syncState.value.isSyncing}
+        >
+          {syncState.value.isSyncing ? 'Syncing...' : 'Sync Now'}
+        </button>
       </div>
 
       {/* Data */}
@@ -286,7 +314,7 @@ export function Profile() {
           Data is only accessible to you.
         </p>
         <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8 }}>
-          TB3 v1.0.0
+          <span class="tb3-brand">TB3</span> v1.0.0
         </p>
       </div>
 
@@ -301,6 +329,81 @@ export function Profile() {
         />
       )}
     </div>
+  );
+}
+
+function VoiceSettings({ profile }: { profile: any }) {
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  useEffect(() => {
+    setVoices(getAvailableVoices());
+    const onChanged = () => setVoices(getAvailableVoices());
+    speechSynthesis.addEventListener('voiceschanged', onChanged);
+    return () => speechSynthesis.removeEventListener('voiceschanged', onChanged);
+  }, []);
+
+  return (
+    <>
+      <div class="settings-row">
+        <span class="settings-row-label">Voice Countdown</span>
+        <div class="toggle-group" role="radiogroup" aria-label="Voice countdown announcements">
+          <button
+            class={`toggle-option${profile.voiceAnnouncements ? ' active' : ''}`}
+            role="radio"
+            aria-checked={profile.voiceAnnouncements}
+            onClick={() => updateAppData((d) => ({
+              ...d,
+              profile: { ...d.profile, voiceAnnouncements: true, lastModified: new Date().toISOString() },
+            }))}
+          >
+            On
+          </button>
+          <button
+            class={`toggle-option${!profile.voiceAnnouncements ? ' active' : ''}`}
+            role="radio"
+            aria-checked={!profile.voiceAnnouncements}
+            onClick={() => updateAppData((d) => ({
+              ...d,
+              profile: { ...d.profile, voiceAnnouncements: false, lastModified: new Date().toISOString() },
+            }))}
+          >
+            Off
+          </button>
+        </div>
+      </div>
+      {profile.voiceAnnouncements && voices.length > 0 && (
+        <div class="settings-row" style={{ flexWrap: 'wrap', gap: 8 }}>
+          <span class="settings-row-label">Voice</span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div class="field" style={{ marginBottom: 0 }}>
+              <select
+                value={profile.voiceName ?? ''}
+                onChange={(e) => {
+                  const val = (e.target as HTMLSelectElement).value || null;
+                  updateAppData((d) => ({
+                    ...d,
+                    profile: { ...d.profile, voiceName: val, lastModified: new Date().toISOString() },
+                  }));
+                }}
+                aria-label="Select voice"
+              >
+                <option value="">Default</option>
+                {voices.map((v) => (
+                  <option key={v.name} value={v.name}>{v.name}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              class="btn btn-secondary"
+              style={{ whiteSpace: 'nowrap' }}
+              onClick={() => speakTest('5, 4, 3, 2, 1. Go!', profile.voiceName)}
+            >
+              Test
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

@@ -6,8 +6,8 @@ export default defineConfig({
   plugins: [
     preact(),
     VitePWA({
-      registerType: 'prompt',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'TB3 — Tactical Barbell',
         short_name: 'TB3',

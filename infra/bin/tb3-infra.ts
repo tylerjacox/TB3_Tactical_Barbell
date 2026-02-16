@@ -14,6 +14,7 @@ const hostingStack = new Tb3Stack(app, 'Tb3Stack', {
 
 const apiStack = new Tb3ApiStack(app, 'Tb3ApiStack', {
   userPool: hostingStack.userPool,
+  userPoolClient: hostingStack.userPoolClient,
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION || 'us-east-1',

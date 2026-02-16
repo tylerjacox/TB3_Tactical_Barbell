@@ -19,7 +19,9 @@ export async function loadAppData(): Promise<AppData> {
     if (backup) {
       raw = backup;
     } else {
-      return createDefaultAppData();
+      const defaults = createDefaultAppData();
+      await set(DATA_KEY, defaults, store);
+      return defaults;
     }
   }
 
@@ -103,8 +105,7 @@ export async function applyRemoteChanges(pull: {
   newSessions: Array<Record<string, unknown>>;
   newMaxTests: Array<Record<string, unknown>>;
 }): Promise<void> {
-  const data = await get<AppData>(DATA_KEY, store);
-  if (!data) return;
+  const data = await get<AppData>(DATA_KEY, store) ?? createDefaultAppData();
 
   // Profile: last-write-wins
   if (pull.profile) {

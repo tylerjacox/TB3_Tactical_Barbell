@@ -4,8 +4,16 @@ import type { AppData } from '../types';
 type Migration = (data: unknown) => unknown;
 
 const migrations: Record<number, Migration> = {
-  // Future migrations go here:
-  // 2: (data: any) => ({ ...data, schemaVersion: 2, ... }),
+  2: (data: any) => ({
+    ...data,
+    schemaVersion: 2,
+    profile: { ...data.profile, voiceAnnouncements: data.profile.voiceAnnouncements ?? false },
+  }),
+  3: (data: any) => ({
+    ...data,
+    schemaVersion: 3,
+    profile: { ...data.profile, voiceName: data.profile.voiceName ?? null },
+  }),
 };
 
 export function migrateData(data: unknown, targetVersion: number): AppData {

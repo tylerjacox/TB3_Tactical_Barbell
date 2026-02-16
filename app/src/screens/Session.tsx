@@ -11,7 +11,7 @@ import { PlateDisplay } from '../components/PlateDisplay';
 import { calculateBarbellPlates, calculateBeltPlates } from '../calculators/plates';
 import {
   feedbackSetComplete, feedbackExerciseComplete, feedbackRestComplete,
-  feedbackUndo, feedbackSessionComplete,
+  feedbackUndo, feedbackSessionComplete, feedbackVoiceMilestone,
 } from '../services/feedback';
 
 export function Session() {
@@ -62,7 +62,7 @@ function PreSessionSetup() {
   }
 
   const hasSetRange = template.hasSetRange && currentWeek.setsRange[0] !== currentWeek.setsRange[1];
-  const [targetSets, setTargetSets] = useState(currentWeek.setsRange[1]);
+  const targetSets = currentWeek.setsRange[1]; // always start with max
 
   function startSession() {
     const exercises = currentSessionDef!.exercises.map((ex) => {
@@ -105,6 +105,7 @@ function PreSessionSetup() {
       currentExerciseIndex: 0,
       exercises,
       sets,
+      ...(hasSetRange ? { setsRange: currentWeek!.setsRange } : {}),
       weightOverrides: {},
       exerciseStartTimes: { 0: now },
       restTimerState: null,
@@ -136,27 +137,6 @@ function PreSessionSetup() {
         </div>
       ))}
 
-      {hasSetRange && (
-        <div style={{ margin: '16px 0' }}>
-          <p style={{ fontSize: 15, marginBottom: 8 }}>How many sets today?</p>
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-            {Array.from(
-              { length: currentWeek.setsRange[1] - currentWeek.setsRange[0] + 1 },
-              (_, i) => currentWeek.setsRange[0] + i,
-            ).map((n) => (
-              <button
-                key={n}
-                class={`btn ${targetSets === n ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ minWidth: 56, minHeight: 56 }}
-                onClick={() => setTargetSets(n)}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       <button class="btn btn-primary btn-large" style={{ marginTop: 16 }} onClick={startSession}>
         Start Session
       </button>
@@ -180,18 +160,33 @@ function StrengthSessionView({ session }: { session: ActiveSessionState }) {
   const completedSetsForEx = exSets.filter((s) => s.completed).length;
   const nextSet = exSets.find((s) => !s.completed);
   const allExSetsComplete = completedSetsForEx === exSets.length;
+  const canFinishEarly = !!session.setsRange
+    && completedSetsForEx >= session.setsRange[0]
+    && !allExSetsComplete;
 
   // Rest timer state
   const [restRemaining, setRestRemaining] = useState<number | null>(null);
+  const lastAnnouncedRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!session.restTimerState?.running || !session.restTimerState.targetEndTime) {
       setRestRemaining(null);
+      lastAnnouncedRef.current = null;
       return;
     }
     const interval = setInterval(() => {
       const remaining = Math.max(0, session.restTimerState!.targetEndTime! - Date.now());
       setRestRemaining(remaining);
+
+      // Voice milestone announcements
+      if (remaining > 0) {
+        const sec = Math.ceil(remaining / 1000);
+        if (sec !== lastAnnouncedRef.current) {
+          const announced = feedbackVoiceMilestone(remaining);
+          if (announced !== null) lastAnnouncedRef.current = announced;
+        }
+      }
+
       if (remaining <= 0) {
         feedbackRestComplete();
         updateAppData((d) => ({
@@ -218,7 +213,7 @@ function StrengthSessionView({ session }: { session: ActiveSessionState }) {
     // Start rest timer
     const profile = appData.value.profile;
     const template = getTemplate(session.templateId as any);
-    const shouldShowRest = !template?.hideRestTimer && profile.restTimerDefault > 0;
+    const shouldShowRest = profile.restTimerDefault > 0;
     const restDuration = getRestDuration(appData.value);
 
     const restTimerState = shouldShowRest
@@ -283,6 +278,48 @@ function StrengthSessionView({ session }: { session: ActiveSessionState }) {
       ...d,
       activeSession: d.activeSession ? { ...d.activeSession, sets: updatedSets } : null,
     }));
+    setUndoSet(null);
+  }
+
+  function finishExercise() {
+    feedbackExerciseComplete();
+    // Remove incomplete sets for the current exercise
+    const updatedSets = sets.filter(
+      (s) => !(s.exerciseIndex === currentExerciseIndex && !s.completed),
+    );
+
+    const isLastExercise = currentExerciseIndex >= exercises.length - 1;
+
+    if (isLastExercise) {
+      // All exercises done — complete the session
+      updateAppData((d) => ({
+        ...d,
+        activeSession: d.activeSession
+          ? { ...d.activeSession, sets: updatedSets, restTimerState: null }
+          : null,
+      }));
+      setTimeout(() => completeSession(updatedSets), 300);
+    } else {
+      // Advance to next exercise
+      const nextIndex = currentExerciseIndex + 1;
+      updateAppData((d) => {
+        if (!d.activeSession) return d;
+        const startTimes = { ...d.activeSession.exerciseStartTimes };
+        if (!startTimes[nextIndex]) {
+          startTimes[nextIndex] = new Date().toISOString();
+        }
+        return {
+          ...d,
+          activeSession: {
+            ...d.activeSession,
+            sets: updatedSets,
+            currentExerciseIndex: nextIndex,
+            restTimerState: null,
+            exerciseStartTimes: startTimes,
+          },
+        };
+      });
+    }
     setUndoSet(null);
   }
 
@@ -482,6 +519,18 @@ function StrengthSessionView({ session }: { session: ActiveSessionState }) {
             {nextSet ? `x ${nextSet.targetReps} reps` : 'All sets complete'}
           </div>
 
+          {/* Early finish — inside card, away from Complete Set button */}
+          {canFinishEarly && (
+            <button
+              class="btn btn-ghost"
+              style={{ marginTop: 16 }}
+              onClick={finishExercise}
+              aria-label={`Done with ${currentEx.liftName}, skip remaining sets`}
+            >
+              Done with {currentEx.liftName}
+            </button>
+          )}
+
           {/* Rest Timer */}
           {restRemaining !== null && restRemaining > 0 && (
             <div class="rest-timer" role="timer" aria-label={`Rest timer, ${Math.ceil(restRemaining / 1000)} seconds`}>
@@ -501,8 +550,14 @@ function StrengthSessionView({ session }: { session: ActiveSessionState }) {
         </div>
       </div>
 
-      {/* Complete Set Button — pinned to bottom */}
+      {/* Undo toast + Complete Set Button — pinned to bottom */}
       <div class="session-action-bar">
+        {undoSet !== null && (
+          <div class="undo-toast" role="alert" aria-live="assertive">
+            <span>Set {undoSet} complete</span>
+            <button class="undo-btn" onClick={handleUndo}>Undo</button>
+          </div>
+        )}
         <button
           class="complete-set-btn"
           onClick={completeSet}
@@ -540,14 +595,6 @@ function StrengthSessionView({ session }: { session: ActiveSessionState }) {
             </button>
           )}
         </>
-      )}
-
-      {/* Undo toast */}
-      {undoSet !== null && (
-        <div class="undo-toast" role="alert" aria-live="assertive">
-          <span>Set {undoSet} complete</span>
-          <button class="undo-btn" onClick={handleUndo}>Undo</button>
-        </div>
       )}
 
       {/* Actions Menu */}

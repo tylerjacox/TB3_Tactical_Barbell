@@ -8,7 +8,7 @@ A progressive web app for tracking strength training programs based on the Tacti
 - **1RM Calculator** — Epley formula with training max (90%) support, percentage tables at 65-100%
 - **Plate Calculator** — Greedy algorithm for barbell and weight belt loading with visual diagrams showing color-coded competition plates
 - **Schedule Generator** — Pre-computes all weights and plate breakdowns for every session in your program cycle
-- **Active Workout Tracking** — Set-by-set tracking with rest timers, weight overrides, undo, and session persistence (survives app crashes/force-quit)
+- **Active Workout Tracking** — Set-by-set tracking with rest timers, weight overrides, undo, auto-regulate sets (finish early after minimum), and session persistence (survives app crashes/force-quit)
 - **1RM Progression Charts** — SVG line graphs with Day/Week/Month/Year/All time range filtering
 
 ### Visual Plate Loading
@@ -28,8 +28,8 @@ Track your strength gains over time with per-lift line graphs. Filter by Day, We
 </p>
 - **Session History** — Complete log of all completed workouts with exercise details
 - **Data Export/Import** — JSON export via Web Share API with 12-step validated import
-- **Cloud Sync** — Optional cross-device sync via Cognito authentication
-- **Offline-First** — Service worker with precaching, works without network
+- **Cloud Sync** — Cross-device sync via Cognito authentication with automatic token refresh, Google OAuth2 PKCE support
+- **Offline-First** — Service worker with precaching and auto-update, works without network
 - **Chromecast Support** — Cast your active workout to a TV via Google Cast, showing exercise, weight, sets, rest timer (Android/desktop Chrome)
 - **iOS Optimized** — Safe area insets, Dynamic Type support, haptic feedback, standalone display
 
@@ -41,7 +41,7 @@ Track your strength gains over time with per-lift line graphs. Filter by Day, We
 | Build | [Vite](https://vitejs.dev/) 6 + TypeScript 5 |
 | PWA | [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) (Workbox) |
 | Storage | IndexedDB via [idb-keyval](https://github.com/nicedoc/idb-keyval) |
-| Auth | [Amazon Cognito](https://aws.amazon.com/cognito/) (SRP, email-based) |
+| Auth | [Amazon Cognito](https://aws.amazon.com/cognito/) (SRP + Google OAuth2 PKCE) |
 | API | AWS API Gateway HTTP API + Lambda (Node.js 20) |
 | Database | DynamoDB (single-table, PAY_PER_REQUEST) |
 | Hosting | S3 + CloudFront (OAC, HTTPS, security headers) |
@@ -186,6 +186,7 @@ npm run dev
 | `VITE_COGNITO_USER_POOL_ID` | Cognito User Pool ID (e.g., `us-west-2_aBcDeFgHi`) |
 | `VITE_COGNITO_CLIENT_ID` | Cognito App Client ID |
 | `VITE_COGNITO_REGION` | AWS region (e.g., `us-west-2`) |
+| `VITE_COGNITO_DOMAIN` | Cognito hosted UI domain (e.g., `https://tb3-auth.auth.us-west-2.amazoncognito.com`) |
 | `VITE_API_URL` | API Gateway endpoint URL |
 
 These are injected at build time by Vite. For production deploys, `deploy.sh` generates them automatically from CloudFormation outputs. For local dev, copy `app/.env.example` to `app/.env.local` and fill in the values.
@@ -218,7 +219,7 @@ User action → Signal update → IndexedDB write → UI re-render
 
 - **Offline-first**: All data lives in IndexedDB. The app works fully without network.
 - **Write-through**: Every state change persists to IndexedDB immediately.
-- **Cloud sync**: Optional push/pull sync via authenticated API. Last-write-wins for singletons (profile, active program), append-only for sessions and 1RM tests.
+- **Cloud sync**: Push/pull sync via authenticated API with automatic token refresh on 401. Last-write-wins for singletons (profile, active program), union-by-ID for sessions and 1RM tests.
 
 ### Schedule Pre-Computation
 
@@ -239,7 +240,7 @@ Active workout state is saved to IndexedDB on every set completion. If the app c
 ## Security
 
 - **CloudFront security headers**: CSP, HSTS, X-Frame-Options DENY, X-Content-Type-Options
-- **Cognito SRP auth**: Password never sent in plaintext, client-side SRP protocol
+- **Cognito SRP + OAuth2 PKCE auth**: Password never sent in plaintext; Google sign-in uses PKCE (no client secret on frontend)
 - **User enumeration prevention**: `preventUserExistenceErrors` enabled on Cognito client
 - **API authorization**: JWT authorizer on API Gateway, Lambda validates `sub` claim
 - **DynamoDB isolation**: All items keyed by `USER#{cognitoUserId}`, no cross-user access

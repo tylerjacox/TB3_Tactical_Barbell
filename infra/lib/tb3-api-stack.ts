@@ -11,6 +11,7 @@ import { Construct } from 'constructs';
 
 interface Tb3ApiStackProps extends cdk.StackProps {
   userPool: cognito.UserPool;
+  userPoolClient: cognito.UserPoolClient;
 }
 
 export class Tb3ApiStack extends cdk.Stack {
@@ -62,6 +63,7 @@ export class Tb3ApiStack extends cdk.Stack {
     const authorizer = new apiAuthorizers.HttpUserPoolAuthorizer(
       'CognitoAuthorizer',
       props.userPool,
+      { userPoolClients: [props.userPoolClient] },
     );
 
     httpApi.addRoutes({

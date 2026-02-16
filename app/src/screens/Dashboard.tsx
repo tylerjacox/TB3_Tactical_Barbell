@@ -58,7 +58,7 @@ export function Dashboard() {
   if (!activeProgram) {
     return (
       <div class="screen">
-        <div class="screen-header"><h1>TB3</h1></div>
+        <div class="screen-header"><h1 class="tb3-brand">TB3</h1></div>
         <InstallPrompt />
         <div class="empty-state">
           <p>No active program. Set up your lifts and choose a template to get started.</p>
@@ -102,7 +102,7 @@ export function Dashboard() {
 
   return (
     <div class="screen">
-      <div class="screen-header"><h1>TB3</h1></div>
+      <div class="screen-header"><h1 class="tb3-brand">TB3</h1></div>
 
       <InstallPrompt />
 

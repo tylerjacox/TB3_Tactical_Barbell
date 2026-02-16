@@ -1,6 +1,6 @@
 // TB3 PWA — Core TypeScript Interfaces (PRD 7.1)
 
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 3;
 
 export const LIFT_NAMES = [
   'Squat',
@@ -44,6 +44,8 @@ export interface UserProfile {
   plateInventoryBelt: PlateInventory;
   restTimerDefault: number;
   soundMode: 'on' | 'off' | 'vibrate';
+  voiceAnnouncements: boolean;
+  voiceName: string | null;
   theme: 'light' | 'dark' | 'system';
   unit: 'lb' | 'kg';
   lastModified: string;
@@ -114,6 +116,7 @@ export interface ActiveSessionState {
     plateBreakdown: { weight: number; count: number }[];
   }[];
   sets: SessionSet[];
+  setsRange?: [number, number];
   weightOverrides: Record<number, number>;
   exerciseStartTimes: Record<number, string>;
   restTimerState: {
@@ -205,6 +208,8 @@ export function createDefaultProfile(): UserProfile {
     plateInventoryBelt: structuredClone(DEFAULT_PLATE_INVENTORY_BELT),
     restTimerDefault: 120,
     soundMode: 'on',
+    voiceAnnouncements: false,
+    voiceName: null,
     theme: 'dark',
     unit: 'lb',
     lastModified: new Date().toISOString(),

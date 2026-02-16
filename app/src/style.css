@@ -92,6 +92,11 @@ body {
   padding: 16px 0 12px;
 }
 
+.tb3-brand {
+  font-weight: 800;
+  color: var(--accent);
+}
+
 .screen-header h1 {
   font-size: 28px;
   font-weight: 700;
@@ -684,22 +689,18 @@ select:focus-visible {
 
 /* --- Undo Toast --- */
 .undo-toast {
-  position: fixed;
-  bottom: calc(var(--sab) + var(--tab-height) + 16px);
-  left: 50%;
-  transform: translateX(-50%);
   background: var(--card);
   color: var(--text);
-  padding: 12px 20px;
-  border-radius: 12px;
+  padding: 10px 16px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   font-size: 14px;
   font-weight: 500;
-  z-index: 100;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  margin-bottom: 10px;
 }
 
 .undo-toast .undo-btn {
@@ -1088,7 +1089,6 @@ select:focus-visible {
 
 .auth-title {
   font-size: 32px;
-  font-weight: 700;
   margin-bottom: 8px;
   text-align: center;
 }
@@ -1355,8 +1355,6 @@ select:focus-visible {
 
 .loading-screen h1 {
   font-size: 32px;
-  font-weight: 700;
-  color: var(--accent);
 }
 
 .spinner {

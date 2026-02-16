@@ -5,7 +5,7 @@ import { authState } from './services/auth';
 import { useAuth } from './hooks/useAuth';
 import { useSync } from './hooks/useSync';
 import { initSync } from './services/sync';
-import { getLocalChanges, applyRemoteChanges } from './services/storage';
+import { getLocalChanges, applyRemoteChanges, loadAppData } from './services/storage';
 
 // Auth screens
 import { Login } from './screens/auth/Login';
@@ -37,7 +37,11 @@ export function App() {
   useEffect(() => {
     initSync({
       getLocalChanges,
-      applyRemoteChanges,
+      applyRemoteChanges: async (pull) => {
+        await applyRemoteChanges(pull);
+        const fresh = await loadAppData();
+        appData.value = fresh;
+      },
       isWorkoutActive: () => !!appData.value.activeSession,
     });
   }, []);
@@ -49,7 +53,7 @@ export function App() {
   if (isLoading.value || authLoading) {
     return (
       <div class="loading-screen">
-        <h1>TB3</h1>
+        <h1 class="tb3-brand">TB3</h1>
         <div class="spinner" />
       </div>
     );

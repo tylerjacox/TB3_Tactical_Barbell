@@ -214,11 +214,11 @@ export async function initAuth(): Promise<void> {
     return;
   }
 
-  // Try online token refresh
+  // Try online token refresh (OAuth2 endpoint works for all auth methods)
   if (navigator.onLine) {
     try {
-      const refreshed = await refreshSession();
-      if (refreshed) return;
+      const newToken = await refreshAccessToken();
+      if (newToken) return;
     } catch {
       // Fall through to offline grace check
     }
@@ -321,15 +321,18 @@ export async function completeNewPassword(newPassword: string): Promise<void> {
  * Sign out — clears tokens locally. Keeps local IndexedDB data.
  */
 export async function signOut(): Promise<void> {
+  // Clear local state immediately so the UI updates
+  clearTokens();
+  authState.value = { isAuthenticated: false, isLoading: false, user: null, error: null };
+
+  // Best-effort Cognito cleanup (non-blocking)
   try {
     const userPool = await getUserPool();
     const user = userPool.getCurrentUser();
     if (user) user.signOut();
   } catch {
-    // Sign out locally even if network fails
+    // Ignore — local tokens already cleared
   }
-  clearTokens();
-  authState.value = { isAuthenticated: false, isLoading: false, user: null, error: null };
 }
 
 /**
@@ -417,6 +420,52 @@ export function getAccessToken(): string | null {
 export function getIdToken(): string | null {
   const tokens = getStoredTokens();
   return tokens?.idToken ?? null;
+}
+
+/**
+ * Refresh access/id tokens using the refresh token via Cognito OAuth2 endpoint.
+ * Works for both SDK-authenticated and OAuth-authenticated users.
+ * Returns the new access token, or null if refresh failed.
+ */
+export async function refreshAccessToken(): Promise<string | null> {
+  const tokens = getStoredTokens();
+  if (!tokens?.refreshToken) return null;
+
+  try {
+    const response = await fetch(`${COGNITO_DOMAIN}/oauth2/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        client_id: CLIENT_ID,
+        refresh_token: tokens.refreshToken,
+      }).toString(),
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const newTokens: StoredTokens = {
+      idToken: data.id_token,
+      accessToken: data.access_token,
+      refreshToken: tokens.refreshToken, // refresh token doesn't rotate
+      expiresAt: Date.now() + data.expires_in * 1000,
+    };
+
+    storeTokens(newTokens);
+
+    const payload = parseJwt(newTokens.idToken);
+    authState.value = {
+      isAuthenticated: true,
+      isLoading: false,
+      user: { email: payload.email, userId: payload.sub },
+      error: null,
+    };
+
+    return newTokens.accessToken;
+  } catch {
+    return null;
+  }
 }
 
 // --- Internal Helpers ---

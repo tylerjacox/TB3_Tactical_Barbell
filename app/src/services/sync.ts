@@ -1,5 +1,5 @@
 import { signal } from '@preact/signals';
-import { getAccessToken, authState } from './auth';
+import { getAccessToken, refreshAccessToken, authState } from './auth';
 
 // --- Sync State (reactive via Preact Signals) ---
 
@@ -65,28 +65,46 @@ export async function performSync(): Promise<void> {
   if (syncState.value.isSyncing) return;
   if (isWorkoutActive?.()) return;
 
-  const token = getAccessToken();
-  if (!token) return;
+  let token = getAccessToken();
+  if (!token) {
+    token = await refreshAccessToken();
+    if (!token) return;
+  }
 
   syncState.value = { ...syncState.value, isSyncing: true, error: null };
 
   try {
+    // Always push local changes since last sync
     const lastSyncedAt = syncState.value.lastSyncedAt;
     const push = await getLocalChanges(lastSyncedAt);
 
-    const response = await fetch(`${API_URL}/sync`, {
+    // Always request full pull (null) — client deduplicates by ID.
+    let response = await fetch(`${API_URL}/sync`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ lastSyncedAt, push }),
+      body: JSON.stringify({ lastSyncedAt: null, push }),
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Authentication expired. Please sign in again.');
+    // On 401, try refreshing token and retry once
+    if (response.status === 401) {
+      token = await refreshAccessToken();
+      if (!token) {
+        throw new Error('Session expired. Please sign out and sign in again.');
       }
+      response = await fetch(`${API_URL}/sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ lastSyncedAt: null, push }),
+      });
+    }
+
+    if (!response.ok) {
       throw new Error(`Sync failed (${response.status})`);
     }
 
