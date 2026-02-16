@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+app/dist/
+infra/cdk.out/
+
+# Environment variables (contain Cognito/API config)
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Claude Code local settings
+.claude/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
