@@ -10,6 +10,22 @@ A progressive web app for tracking strength training programs based on the Tacti
 - **Schedule Generator** — Pre-computes all weights and plate breakdowns for every session in your program cycle
 - **Active Workout Tracking** — Set-by-set tracking with rest timers, weight overrides, undo, and session persistence (survives app crashes/force-quit)
 - **1RM Progression Charts** — SVG line graphs with Day/Week/Month/Year/All time range filtering
+
+### Visual Plate Loading
+
+Every exercise shows a color-coded barbell or belt diagram so you can load plates at a glance. Heaviest plates sit closest to the collar, with a legend showing the exact breakdown per side.
+
+<p align="center">
+  <img src="docs/plate-display.png" alt="Barbell and belt plate loading diagrams" width="390">
+</p>
+
+### 1RM Progression Chart
+
+Track your strength gains over time with per-lift line graphs. Filter by Day, Week, Month, Year, or All to see short-term and long-term trends.
+
+<p align="center">
+  <img src="docs/progression-chart.png" alt="1RM progression chart with time range filtering" width="390">
+</p>
 - **Session History** — Complete log of all completed workouts with exercise details
 - **Data Export/Import** — JSON export via Web Share API with 12-step validated import
 - **Cloud Sync** — Optional cross-device sync via Cognito authentication
