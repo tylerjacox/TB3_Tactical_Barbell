@@ -27,8 +27,6 @@ export interface SessionDef {
   sessionNumber: number;
   lifts?: string[]; // Lift names or slot references like 'cluster' or 'A' / 'B'
   liftSource?: 'fixed' | 'cluster' | 'A' | 'B';
-  percentageOverride?: number; // For Zulu cluster differences
-  setsOverride?: [number, number];
   repsOverride?: number | number[];
 }
 
