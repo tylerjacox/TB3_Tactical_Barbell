@@ -27,6 +27,11 @@ API_URL=$(aws cloudformation describe-stacks \
   --query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' \
   --output text)
 
+COGNITO_DOMAIN=$(aws cloudformation describe-stacks \
+  --stack-name Tb3Stack \
+  --query 'Stacks[0].Outputs[?OutputKey==`CognitoDomainUrl`].OutputValue' \
+  --output text)
+
 REGION=${AWS_REGION:-${AWS_DEFAULT_REGION:-us-west-2}}
 
 echo "Deploying to bucket: $BUCKET"
@@ -39,6 +44,7 @@ VITE_COGNITO_USER_POOL_ID=$POOL_ID
 VITE_COGNITO_CLIENT_ID=$CLIENT_ID
 VITE_COGNITO_REGION=$REGION
 VITE_API_URL=$API_URL
+VITE_COGNITO_DOMAIN=$COGNITO_DOMAIN
 EOF
 
 # Build PWA

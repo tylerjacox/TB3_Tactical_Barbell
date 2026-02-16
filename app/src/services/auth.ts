@@ -18,9 +18,12 @@ export const authState = signal<{
 
 const POOL_ID = import.meta.env.VITE_COGNITO_USER_POOL_ID;
 const CLIENT_ID = import.meta.env.VITE_COGNITO_CLIENT_ID;
+const COGNITO_DOMAIN = import.meta.env.VITE_COGNITO_DOMAIN;
+const REDIRECT_URI = `${window.location.origin}/`;
 
 const TOKEN_KEY = 'tb3_auth_tokens';
 const LAST_AUTH_KEY = 'tb3_last_auth';
+const PKCE_VERIFIER_KEY = 'tb3_pkce_verifier';
 const OFFLINE_GRACE_DAYS = 7;
 
 interface StoredTokens {
@@ -74,6 +77,22 @@ function isWithinOfflineGrace(): boolean {
   return elapsed < OFFLINE_GRACE_DAYS * 24 * 60 * 60 * 1000;
 }
 
+// --- PKCE Helpers (OAuth2 with Proof Key for Code Exchange) ---
+
+function generateCodeVerifier(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 43);
+}
+
+async function generateCodeChallenge(verifier: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  const base64 = btoa(String.fromCharCode(...new Uint8Array(digest)));
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 // --- Pending new-password challenge state ---
 
 let pendingCognitoUser: any = null;
@@ -82,11 +101,112 @@ let pendingUserAttributes: Record<string, string> = {};
 // --- Public API ---
 
 /**
- * Initialize auth on app launch. Checks stored tokens, attempts refresh,
- * falls back to offline grace period.
+ * Redirect to Google sign-in via Cognito's OAuth2 authorize endpoint.
+ * Uses PKCE since this is a public client (no client secret on frontend).
+ */
+export async function signInWithGoogle(): Promise<void> {
+  const verifier = generateCodeVerifier();
+  const challenge = await generateCodeChallenge(verifier);
+  sessionStorage.setItem(PKCE_VERIFIER_KEY, verifier);
+
+  const params = new URLSearchParams({
+    identity_provider: 'Google',
+    response_type: 'code',
+    client_id: CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    scope: 'email openid profile',
+    code_challenge: challenge,
+    code_challenge_method: 'S256',
+  });
+
+  window.location.href = `${COGNITO_DOMAIN}/oauth2/authorize?${params.toString()}`;
+}
+
+/**
+ * Handle OAuth2 callback — exchange authorization code for tokens.
+ * Called on app init if URL has ?code= param.
+ * Returns true if a callback was handled.
+ */
+async function handleOAuthCallback(): Promise<boolean> {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if (!code) return false;
+
+  const verifier = sessionStorage.getItem(PKCE_VERIFIER_KEY);
+  if (!verifier) {
+    authState.value = {
+      isAuthenticated: false,
+      isLoading: false,
+      user: null,
+      error: 'Missing PKCE verifier. Please try signing in again.',
+    };
+    // Clean URL
+    window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+    return true;
+  }
+
+  authState.value = { ...authState.value, isLoading: true };
+
+  try {
+    const response = await fetch(`${COGNITO_DOMAIN}/oauth2/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: CLIENT_ID,
+        redirect_uri: REDIRECT_URI,
+        code,
+        code_verifier: verifier,
+      }).toString(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Token exchange failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    const tokens: StoredTokens = {
+      idToken: data.id_token,
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      expiresAt: Date.now() + data.expires_in * 1000,
+    };
+
+    storeTokens(tokens);
+    sessionStorage.removeItem(PKCE_VERIFIER_KEY);
+
+    const payload = parseJwt(tokens.idToken);
+    authState.value = {
+      isAuthenticated: true,
+      isLoading: false,
+      user: { email: payload.email, userId: payload.sub },
+      error: null,
+    };
+  } catch (err: any) {
+    sessionStorage.removeItem(PKCE_VERIFIER_KEY);
+    authState.value = {
+      isAuthenticated: false,
+      isLoading: false,
+      user: null,
+      error: 'Google sign-in failed. Please try again.',
+    };
+  }
+
+  // Clean URL — remove ?code= query param, preserve hash
+  window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+  return true;
+}
+
+/**
+ * Initialize auth on app launch. Checks for OAuth callback first,
+ * then stored tokens, attempts refresh, falls back to offline grace period.
  */
 export async function initAuth(): Promise<void> {
   authState.value = { ...authState.value, isLoading: true };
+
+  // Check for OAuth callback (?code= from Google redirect)
+  if (await handleOAuthCallback()) return;
 
   const tokens = getStoredTokens();
   if (!tokens) {

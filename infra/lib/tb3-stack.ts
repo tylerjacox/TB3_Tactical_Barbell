@@ -3,6 +3,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 
 export class Tb3Stack extends cdk.Stack {
@@ -63,7 +64,30 @@ export class Tb3Stack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
-    // Cognito App Client — SRP auth, no secret, prevent user enumeration
+    // Cognito domain — required for OAuth2 endpoints (authorize, token)
+    const userPoolDomain = this.userPool.addDomain('CognitoDomain', {
+      cognitoDomain: { domainPrefix: 'tb3-auth' },
+    });
+
+    // Google Identity Provider
+    const googleSecret = secretsmanager.Secret.fromSecretNameV2(
+      this, 'GoogleOAuthSecret', 'tb3/google-oauth',
+    );
+    const googleProvider = new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleProvider', {
+      userPool: this.userPool,
+      clientId: googleSecret.secretValueFromJson('clientId').unsafeUnwrap(),
+      clientSecretValue: googleSecret.secretValueFromJson('clientSecret'),
+      scopes: ['email', 'openid', 'profile'],
+      attributeMapping: {
+        email: cognito.ProviderAttribute.GOOGLE_EMAIL,
+        givenName: cognito.ProviderAttribute.GOOGLE_GIVEN_NAME,
+        familyName: cognito.ProviderAttribute.GOOGLE_FAMILY_NAME,
+      },
+    });
+
+    const callbackUrl = 'https://d1c704j6qnvml9.cloudfront.net/';
+
+    // Cognito App Client — SRP auth + OAuth2 authorization code grant
     this.userPoolClient = this.userPool.addClient('AppClient', {
       authFlows: {
         userSrp: true,
@@ -73,7 +97,24 @@ export class Tb3Stack extends cdk.Stack {
       accessTokenValidity: cdk.Duration.hours(24),
       refreshTokenValidity: cdk.Duration.days(30),
       idTokenValidity: cdk.Duration.hours(24),
+      oAuth: {
+        flows: { authorizationCodeGrant: true },
+        scopes: [
+          cognito.OAuthScope.EMAIL,
+          cognito.OAuthScope.OPENID,
+          cognito.OAuthScope.PROFILE,
+        ],
+        callbackUrls: [callbackUrl],
+        logoutUrls: [callbackUrl],
+      },
+      supportedIdentityProviders: [
+        cognito.UserPoolClientIdentityProvider.GOOGLE,
+        cognito.UserPoolClientIdentityProvider.COGNITO,
+      ],
     });
+
+    // Ensure Google provider is created before the client references it
+    this.userPoolClient.node.addDependency(googleProvider);
 
     // Stack outputs
     new cdk.CfnOutput(this, 'BucketName', {
@@ -105,6 +146,11 @@ export class Tb3Stack extends cdk.Stack {
       value: this.region,
       exportName: 'Tb3CognitoRegion',
     });
+
+    new cdk.CfnOutput(this, 'CognitoDomainUrl', {
+      value: `https://${userPoolDomain.domainName}.auth.${this.region}.amazoncognito.com`,
+      exportName: 'Tb3CognitoDomainUrl',
+    });
   }
 
   private createResponseHeadersPolicy(): cloudfront.ResponseHeadersPolicy {
@@ -116,7 +162,8 @@ export class Tb3Stack extends cdk.Stack {
             "script-src 'self'",
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data:",
-            `connect-src 'self' https://cognito-idp.${this.region}.amazonaws.com https://*.execute-api.${this.region}.amazonaws.com`,
+            `connect-src 'self' https://cognito-idp.${this.region}.amazonaws.com https://*.execute-api.${this.region}.amazonaws.com https://*.auth.${this.region}.amazoncognito.com`,
+            `form-action 'self' https://*.auth.${this.region}.amazoncognito.com https://accounts.google.com`,
           ].join('; '),
           override: true,
         },
