@@ -128,6 +128,7 @@ function buildMessage(session: ActiveSessionState, profile: UserProfile): string
     week: session.programWeek,
     session: session.programSession,
     templateId: session.templateId,
+    startedAt: session.startedAt,
   };
 
   return JSON.stringify(payload);

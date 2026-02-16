@@ -4,6 +4,7 @@
   var NAMESPACE = 'urn:x-cast:com.tb3.workout';
   var restInterval = null;
   var clockOffset = 0; // sender time - local time
+  var sessionStartedAt = null; // ISO string from sender
 
   // Competition plate colors (matches PlateDisplay.tsx)
   var PLATE_COLORS = {
@@ -18,6 +19,43 @@
   var PLATE_WIDTH = { 45: 16, 35: 14, 25: 12, 10: 10, 5: 8, 2.5: 6, 1.25: 5 };
 
   var MAX_PLATE_H = 72; // max plate height in px for TV
+
+  // --- Clock ---
+  function formatTime(date) {
+    var h = date.getHours();
+    var m = date.getMinutes();
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    var s = date.getSeconds();
+    return h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s + ' ' + ampm;
+  }
+
+  function formatElapsed(ms) {
+    var totalSecs = Math.floor(ms / 1000);
+    var h = Math.floor(totalSecs / 3600);
+    var m = Math.floor((totalSecs % 3600) / 60);
+    var s = totalSecs % 60;
+    return h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function updateClock() {
+    var now = new Date();
+    var text = formatTime(now);
+    var headerClock = document.getElementById('clock');
+    var idleClock = document.getElementById('idleClock');
+    if (headerClock) headerClock.textContent = text;
+    if (idleClock) idleClock.textContent = text;
+
+    // Session elapsed timer
+    var elapsedEl = document.getElementById('sessionElapsed');
+    if (elapsedEl && sessionStartedAt) {
+      var elapsed = Date.now() - new Date(sessionStartedAt).getTime();
+      elapsedEl.textContent = formatElapsed(Math.max(0, elapsed));
+    }
+  }
+
+  updateClock();
+  setInterval(updateClock, 1000);
 
   // --- Start Receiver ---
   var context = cast.framework.CastReceiverContext.getInstance();
@@ -43,12 +81,16 @@
   function showIdle() {
     document.getElementById('idle').classList.remove('hidden');
     document.getElementById('workout').classList.add('hidden');
+    sessionStartedAt = null;
     stopRestTimer();
   }
 
   function renderWorkout(d) {
     document.getElementById('idle').classList.add('hidden');
     document.getElementById('workout').classList.remove('hidden');
+
+    // Session start time
+    if (d.startedAt) sessionStartedAt = d.startedAt;
 
     // Header
     document.getElementById('weekSession').textContent =

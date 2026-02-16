@@ -30,7 +30,7 @@ Track your strength gains over time with per-lift line graphs. Filter by Day, We
 - **Data Export/Import** — JSON export via Web Share API with 12-step validated import
 - **Cloud Sync** — Cross-device sync via Cognito authentication with automatic token refresh, Google OAuth2 PKCE support
 - **Offline-First** — Service worker with precaching and auto-update, works without network
-- **Chromecast Support** — Cast your active workout to a TV via Google Cast, showing exercise, weight, color-coded barbell plate diagram, sets, rest timer, and exercise progress (Android/desktop Chrome)
+- **Chromecast Support** — Cast your active workout to a TV via Google Cast with two-column layout showing exercise, weight, color-coded barbell plate diagram, sets, rest timer, session elapsed time, current clock, and exercise progress (Android/desktop Chrome)
 - **iOS Optimized** — Safe area insets, Dynamic Type support, haptic feedback, standalone display
 
 ## Tech Stack
