@@ -27,45 +27,28 @@ struct Step1LiftsView: View {
 
     private func liftRow(_ lift: LiftName) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(lift.displayName)
-                .font(.headline)
-
-            HStack(spacing: 12) {
-                HStack {
-                    TextField("Weight", text: binding(for: lift, keyPath: \.weight))
-                        .keyboardType(.decimalPad)
-                        .frame(width: 80)
-                        .padding(10)
-                        .background(Color.tb3Card)
-                        .cornerRadius(8)
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.tb3Border, lineWidth: 1))
-                    Text("lb")
-                        .foregroundStyle(Color.tb3Muted)
-                }
-
-                Text("\u{00D7}")
-                    .foregroundStyle(Color.tb3Muted)
-
-                HStack {
-                    TextField("Reps", text: binding(for: lift, keyPath: \.reps))
-                        .keyboardType(.numberPad)
-                        .frame(width: 60)
-                        .padding(10)
-                        .background(Color.tb3Card)
-                        .cornerRadius(8)
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.tb3Border, lineWidth: 1))
-                    Text("reps")
-                        .foregroundStyle(Color.tb3Muted)
-                }
-
+            HStack {
+                Text(lift.displayName)
+                    .font(.headline)
                 Spacer()
-
-                // Show calculated 1RM
                 if let calculated = calculatedMax(for: lift) {
                     Text("\(Int(calculated)) 1RM")
-                        .font(.caption)
-                        .foregroundStyle(Color.tb3Muted)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.tb3Accent)
                 }
+            }
+
+            WeightRepsPicker(
+                weightText: binding(for: lift, keyPath: \.weight),
+                repsText: binding(for: lift, keyPath: \.reps)
+            )
+
+            // Plate visualizer
+            if let plateResult = plateResult(for: lift) {
+                PlateDisplayView(
+                    result: plateResult,
+                    isBodyweight: lift == .weightedPullUp
+                )
             }
         }
         .padding()
@@ -77,6 +60,22 @@ struct Step1LiftsView: View {
         Binding(
             get: { vm.liftInputs[lift.rawValue]?[keyPath: keyPath] ?? "" },
             set: { vm.liftInputs[lift.rawValue]?[keyPath: keyPath] = $0 }
+        )
+    }
+
+    private func plateResult(for lift: LiftName) -> PlateResult? {
+        guard let input = vm.liftInputs[lift.rawValue],
+              let weight = Double(input.weight), weight > 0 else { return nil }
+        if lift == .weightedPullUp {
+            return PlateCalculator.calculateBeltPlates(
+                totalWeight: weight,
+                inventory: DEFAULT_PLATE_INVENTORY_BELT
+            )
+        }
+        return PlateCalculator.calculateBarbellPlates(
+            totalWeight: weight,
+            barbellWeight: 45,
+            inventory: DEFAULT_PLATE_INVENTORY_BARBELL
         )
     }
 

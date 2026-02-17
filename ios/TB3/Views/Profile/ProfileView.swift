@@ -1,6 +1,7 @@
 // TB3 iOS — Profile View (settings, 1RM entry, sync, data management)
 
 import SwiftUI
+import AVFoundation
 
 struct ProfileView: View {
     @Environment(AppState.self) var appState
@@ -87,30 +88,31 @@ struct ProfileView: View {
             .buttonStyle(.plain)
 
             if vm.expandedLift == lift.rawValue {
-                HStack(spacing: 12) {
-                    TextField("Weight", text: $vm.liftWeight)
-                        .keyboardType(.decimalPad)
-                        .frame(width: 80)
-                        .textFieldStyle(.roundedBorder)
+                VStack(spacing: 12) {
+                    WeightRepsPicker(
+                        weightText: $vm.liftWeight,
+                        repsText: $vm.liftReps
+                    )
 
-                    Text("lb \u{00D7}")
-                        .foregroundStyle(Color.tb3Muted)
-
-                    TextField("Reps", text: $vm.liftReps)
-                        .keyboardType(.numberPad)
-                        .frame(width: 60)
-                        .textFieldStyle(.roundedBorder)
-
-                    Text("reps")
-                        .foregroundStyle(Color.tb3Muted)
-
-                    Spacer()
+                    // Plate visualizer
+                    if let weight = Double(vm.liftWeight), weight > 0 {
+                        let isBodyweight = lift.rawValue == LiftName.weightedPullUp.rawValue
+                        let plateResult = isBodyweight
+                            ? PlateCalculator.calculateBeltPlates(
+                                totalWeight: weight,
+                                inventory: appState.profile.plateInventoryBelt)
+                            : PlateCalculator.calculateBarbellPlates(
+                                totalWeight: weight,
+                                barbellWeight: appState.profile.barbellWeight,
+                                inventory: appState.profile.plateInventoryBarbell)
+                        PlateDisplayView(result: plateResult, isBodyweight: isBodyweight)
+                    }
 
                     Button("Save") {
                         vm.save1RM(liftName: lift.rawValue)
                     }
                     .buttonStyle(.borderedProminent)
-                    .controlSize(.small)
+                    .frame(maxWidth: .infinity)
                     .disabled(vm.liftWeight.isEmpty || vm.liftReps.isEmpty)
                 }
 
@@ -209,6 +211,14 @@ struct ProfileView: View {
                 get: { appState.profile.voiceAnnouncements },
                 set: { vm.updateVoice($0) }
             ))
+
+            if appState.profile.voiceAnnouncements {
+                VoicePickerRow(
+                    selectedVoiceName: appState.profile.voiceName,
+                    onSelect: { vm.updateVoiceName($0) },
+                    onPreview: { vm.previewVoice($0) }
+                )
+            }
         }
     }
 
@@ -347,6 +357,108 @@ struct ProfileView: View {
                         .foregroundStyle(Color.tb3Muted)
                 }
             }
+        }
+    }
+}
+
+// MARK: - Voice Picker Row
+
+private struct VoicePickerRow: View {
+    let selectedVoiceName: String?
+    let onSelect: (String?) -> Void
+    let onPreview: (String?) -> Void
+
+    private var englishVoices: [(name: String, label: String)] {
+        AVSpeechSynthesisVoice.speechVoices()
+            .filter { $0.language.hasPrefix("en") }
+            .sorted { a, b in
+                // Premium/enhanced voices first, then by name
+                if a.quality != b.quality { return a.quality.rawValue > b.quality.rawValue }
+                return a.name < b.name
+            }
+            .map { voice in
+                let quality = voice.quality == .enhanced ? " (Enhanced)" :
+                              voice.quality == .premium ? " (Premium)" : ""
+                let region = voiceRegion(voice.language)
+                return (name: voice.name, label: "\(voice.name)\(quality) — \(region)")
+            }
+    }
+
+    var body: some View {
+        NavigationLink {
+            List {
+                // Default option
+                Button {
+                    onSelect(nil)
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("System Default")
+                                .foregroundStyle(Color.primary)
+                            Text("en-US")
+                                .font(.caption)
+                                .foregroundStyle(Color.tb3Muted)
+                        }
+                        Spacer()
+                        if selectedVoiceName == nil {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.tb3Accent)
+                        }
+                    }
+                }
+
+                // All English voices
+                ForEach(englishVoices, id: \.name) { voice in
+                    Button {
+                        onSelect(voice.name)
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(voice.label)
+                                    .foregroundStyle(Color.primary)
+                            }
+                            Spacer()
+                            if selectedVoiceName == voice.name {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.tb3Accent)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Voice")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        onPreview(selectedVoiceName)
+                    } label: {
+                        Image(systemName: "play.circle")
+                    }
+                }
+            }
+        } label: {
+            HStack {
+                Text("Voice")
+                Spacer()
+                Text(selectedVoiceName ?? "Default")
+                    .foregroundStyle(Color.tb3Muted)
+            }
+        }
+    }
+
+    private func voiceRegion(_ language: String) -> String {
+        switch language {
+        case "en-US": return "US"
+        case "en-GB": return "UK"
+        case "en-AU": return "Australia"
+        case "en-IE": return "Ireland"
+        case "en-ZA": return "South Africa"
+        case "en-IN": return "India"
+        case "en-SG": return "Singapore"
+        default:
+            let parts = language.split(separator: "-")
+            return parts.count > 1 ? String(parts[1]) : language
         }
     }
 }

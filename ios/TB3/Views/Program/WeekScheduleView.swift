@@ -48,12 +48,8 @@ struct WeekScheduleView: View {
 
                     Spacer()
 
-                    if let min = week.minSets, let max = week.maxSets, min != max {
-                        Text("\(min)-\(max) sets")
-                            .font(.caption)
-                            .foregroundStyle(Color.tb3Muted)
-                    } else if let max = week.maxSets {
-                        Text("\(max) sets")
+                    if let setsReps = formatSetsReps() {
+                        Text(setsReps)
                             .font(.caption)
                             .foregroundStyle(Color.tb3Muted)
                     }
@@ -63,7 +59,7 @@ struct WeekScheduleView: View {
             }
             .buttonStyle(.plain)
 
-            // Sessions
+            // Sessions (expanded)
             if isExpanded {
                 ForEach(Array(week.sessions.enumerated()), id: \.offset) { _, session in
                     SessionPreviewCard(session: session, week: week, compact: true)
@@ -71,5 +67,22 @@ struct WeekScheduleView: View {
                 }
             }
         }
+    }
+
+    private func formatSetsReps() -> String? {
+        let repsStr: String
+        switch week.repsPerSet {
+        case .single(let r):
+            repsStr = "\(r)"
+        case .array(let arr):
+            repsStr = arr.map { "\($0)" }.joined(separator: ",")
+        }
+
+        if let min = week.minSets, let max = week.maxSets, min != max {
+            return "\(min)-\(max)X\(repsStr)"
+        } else if let max = week.maxSets {
+            return "\(max)X\(repsStr)"
+        }
+        return nil
     }
 }

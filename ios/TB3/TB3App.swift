@@ -86,6 +86,9 @@ struct RootView: View {
                 syncCoordinator?.onForeground()
             }
         }
+        .onChange(of: appState.profile.soundMode) { _, _ in configureFeedback() }
+        .onChange(of: appState.profile.voiceAnnouncements) { _, _ in configureFeedback() }
+        .onChange(of: appState.profile.voiceName) { _, _ in configureFeedback() }
     }
 
     // MARK: - Main Tab View
@@ -136,6 +139,14 @@ struct RootView: View {
         }
     }
 
+    private func configureFeedback() {
+        feedbackService.configure(
+            soundMode: appState.profile.soundMode,
+            voiceEnabled: appState.profile.voiceAnnouncements,
+            voiceName: appState.profile.voiceName
+        )
+    }
+
     // MARK: - Setup
 
     private func setup() async {
@@ -158,6 +169,9 @@ struct RootView: View {
 
         // Load data from SwiftData
         appState.loadInitialData(store)
+
+        // Configure feedback from profile settings
+        configureFeedback()
 
         // Initialize auth (check stored tokens, refresh)
         await auth.initAuth()

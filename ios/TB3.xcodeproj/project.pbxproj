@@ -71,6 +71,7 @@
 		DE0FD218EE22776C54298D55 /* PersistedActiveProgram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 442BBA70D73FCC2C0376FB27 /* PersistedActiveProgram.swift */; };
 		E2AC87A9550DAF0059AAA8DC /* MigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE6083C8F2C9331E3165AC6 /* MigrationService.swift */; };
 		E558CFCA84221BCC54F0F12F /* MaxChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723EA4BC8564A3A9198DC7C6 /* MaxChartView.swift */; };
+		CALH0001000000000001 /* CalendarHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CALH0002000000000001 /* CalendarHistoryView.swift */; };
 		E8022F068BA0C48467DCE29D /* PersistedProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AAA6FD7003E87DD988265B /* PersistedProfile.swift */; };
 		E9655E4FBA7B00EA4CB8E199 /* ComputedSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46C166ADEE082B0CB819832E /* ComputedSchedule.swift */; };
 		E9D6A96FB07D41D86E1EAACE /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281E23C5537673A5091ADF2E /* Enums.swift */; };
@@ -80,6 +81,14 @@
 		FA2216D140F5EBA8CAE499C5 /* ScheduleGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5854483050913F3048DB19B8 /* ScheduleGeneratorTests.swift */; };
 		KFK0KBV0IFJ6O3PNFJXDE0T8 /* CustomTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = QNJOVYURSYF7GFL79356MSCB /* CustomTabBar.swift */; };
 		SCRN0HDR0001000000000001 /* ScreenHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCRN0HDR0002000000000001 /* ScreenHeader.swift */; };
+		WTRP0001000000000001 /* WeightRepsPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = WTRP0002000000000001 /* WeightRepsPicker.swift */; };
+		TEST0001A00000000001 /* SessionViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TEST0002A00000000001 /* SessionViewModelTests.swift */; };
+		TEST0001B00000000001 /* AppStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TEST0002B00000000001 /* AppStateTests.swift */; };
+		TEST0001C00000000001 /* SyncPayloadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TEST0002C00000000001 /* SyncPayloadTests.swift */; };
+		TEST0001D00000000001 /* EnumTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TEST0002D00000000001 /* EnumTests.swift */; };
+		TEST0001E00000000001 /* ValidationServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TEST0002E00000000001 /* ValidationServiceTests.swift */; };
+		TEST0001F00000000001 /* FeedbackServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TEST0002F00000000001 /* FeedbackServiceTests.swift */; };
+		TEST0001G00000000001 /* DateFormattingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TEST0002G00000000001 /* DateFormattingTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -139,6 +148,7 @@
 		70B9C4CB73E04A19A63F138D /* ScheduleGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleGenerator.swift; sourceTree = "<group>"; };
 		712B40A95DDC874ACD2B484A /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		723EA4BC8564A3A9198DC7C6 /* MaxChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaxChartView.swift; sourceTree = "<group>"; };
+		CALH0002000000000001 /* CalendarHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarHistoryView.swift; sourceTree = "<group>"; };
 		79D74DB52E11B9946E71B1E0 /* PlateInventory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlateInventory.swift; sourceTree = "<group>"; };
 		8260215234F8588409C363ED /* OneRepMaxCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneRepMaxCalculatorTests.swift; sourceTree = "<group>"; };
 		852C719200DAD0B7EA461CE3 /* SessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionView.swift; sourceTree = "<group>"; };
@@ -169,6 +179,14 @@
 		FAE9C2F0601EBF3BA1B44581 /* Date+Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Formatting.swift"; sourceTree = "<group>"; };
 		QNJOVYURSYF7GFL79356MSCB /* CustomTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabBar.swift; sourceTree = "<group>"; };
 		SCRN0HDR0002000000000001 /* ScreenHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenHeader.swift; sourceTree = "<group>"; };
+		WTRP0002000000000001 /* WeightRepsPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightRepsPicker.swift; sourceTree = "<group>"; };
+		TEST0002A00000000001 /* SessionViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionViewModelTests.swift; sourceTree = "<group>"; };
+		TEST0002B00000000001 /* AppStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateTests.swift; sourceTree = "<group>"; };
+		TEST0002C00000000001 /* SyncPayloadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncPayloadTests.swift; sourceTree = "<group>"; };
+		TEST0002D00000000001 /* EnumTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnumTests.swift; sourceTree = "<group>"; };
+		TEST0002E00000000001 /* ValidationServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationServiceTests.swift; sourceTree = "<group>"; };
+		TEST0002F00000000001 /* FeedbackServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackServiceTests.swift; sourceTree = "<group>"; };
+		TEST0002G00000000001 /* DateFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormattingTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -199,10 +217,57 @@
 			isa = PBXGroup;
 			children = (
 				1B8E7BA5ECA6F5B98D277E55 /* Calculators */,
+				TEST0GRP0EXT000000000001 /* Extensions */,
 				BD0A851E43837E6E3D5AD858 /* Fixtures */,
+				TEST0GRP0MDL000000000001 /* Models */,
+				TEST0GRP0SVC000000000001 /* Services */,
+				TEST0GRP0STA000000000001 /* State */,
 				EF4048FA3EF99D08E9C9AB8C /* Templates */,
+				TEST0GRP0VMD000000000001 /* ViewModels */,
 			);
 			path = TB3Tests;
+			sourceTree = "<group>";
+		};
+		TEST0GRP0VMD000000000001 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				TEST0002A00000000001 /* SessionViewModelTests.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		TEST0GRP0STA000000000001 /* State */ = {
+			isa = PBXGroup;
+			children = (
+				TEST0002B00000000001 /* AppStateTests.swift */,
+			);
+			path = State;
+			sourceTree = "<group>";
+		};
+		TEST0GRP0MDL000000000001 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				TEST0002C00000000001 /* SyncPayloadTests.swift */,
+				TEST0002D00000000001 /* EnumTests.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		TEST0GRP0SVC000000000001 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				TEST0002E00000000001 /* ValidationServiceTests.swift */,
+				TEST0002F00000000001 /* FeedbackServiceTests.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		TEST0GRP0EXT000000000001 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				TEST0002G00000000001 /* DateFormattingTests.swift */,
+			);
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 		0D389FD000ECFC0E3D3D3759 /* Frameworks */ = {
@@ -296,6 +361,7 @@
 			children = (
 				E6CC7E65FEA37B29AB229345 /* HistoryView.swift */,
 				723EA4BC8564A3A9198DC7C6 /* MaxChartView.swift */,
+				CALH0002000000000001 /* CalendarHistoryView.swift */,
 			);
 			path = History;
 			sourceTree = "<group>";
@@ -406,6 +472,7 @@
 				QNJOVYURSYF7GFL79356MSCB /* CustomTabBar.swift */,
 				AF7DF4729B1C82ECC657D26D /* LoadingView.swift */,
 				SCRN0HDR0002000000000001 /* ScreenHeader.swift */,
+				WTRP0002000000000001 /* WeightRepsPicker.swift */,
 				178C8E940FA99AD06FB1FBF9 /* SessionPreviewCard.swift */,
 			);
 			path = Components;
@@ -601,11 +668,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				TEST0001G00000000001 /* DateFormattingTests.swift in Sources */,
+				TEST0001D00000000001 /* EnumTests.swift in Sources */,
+				TEST0001F00000000001 /* FeedbackServiceTests.swift in Sources */,
 				D27EFDEE74BFC1C81DF932BA /* OneRepMaxCalculatorTests.swift in Sources */,
 				6EE4636C2768D1572AA76455 /* PlateCalculatorTests.swift in Sources */,
 				FA2216D140F5EBA8CAE499C5 /* ScheduleGeneratorTests.swift in Sources */,
+				TEST0001A00000000001 /* SessionViewModelTests.swift in Sources */,
+				TEST0001C00000000001 /* SyncPayloadTests.swift in Sources */,
 				8AFC5E8877A29BA1C4D540BC /* TemplateDefinitionTests.swift in Sources */,
 				B967CF42A6D8E082F7E373C5 /* TestFixtures.swift in Sources */,
+				TEST0001E00000000001 /* ValidationServiceTests.swift in Sources */,
+				TEST0001B00000000001 /* AppStateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -643,6 +717,7 @@
 				F20AEDB3E4D7B1D2682E1869 /* LoadingView.swift in Sources */,
 				2B195A831765E8DB8E5D233B /* LoginView.swift in Sources */,
 				E558CFCA84221BCC54F0F12F /* MaxChartView.swift in Sources */,
+				CALH0001000000000001 /* CalendarHistoryView.swift in Sources */,
 				E2AC87A9550DAF0059AAA8DC /* MigrationService.swift in Sources */,
 				36C5C3537797FC58B3D9A2DE /* OnboardingContainerView.swift in Sources */,
 				DCD54989F28634E105AD285F /* OnboardingViewModel.swift in Sources */,
@@ -678,6 +753,7 @@
 				93CCB80A66AD29CFFA84689F /* TokenManager.swift in Sources */,
 				9DD4230C0E0008A0C7370819 /* ValidationService.swift in Sources */,
 				SCRN0HDR0001000000000001 /* ScreenHeader.swift in Sources */,
+				WTRP0001000000000001 /* WeightRepsPicker.swift in Sources */,
 				54CDC325272D2FBDD7086F11 /* WeekScheduleView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -782,6 +858,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -876,6 +953,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

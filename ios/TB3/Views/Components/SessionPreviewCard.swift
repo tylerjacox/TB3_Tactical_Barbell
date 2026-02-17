@@ -30,52 +30,56 @@ struct SessionPreviewCard: View {
     }
 
     private func exerciseRow(_ exercise: ComputedExercise) -> some View {
-        HStack {
-            Text(LiftName(rawValue: exercise.liftName)?.displayName ?? exercise.liftName)
-                .font(.subheadline)
+        VStack(spacing: 6) {
+            HStack {
+                Text(LiftName(rawValue: exercise.liftName)?.displayName ?? exercise.liftName)
+                    .font(.subheadline)
 
-            Spacer()
+                Spacer()
 
-            if exercise.targetWeight > 0 {
-                VStack(alignment: .trailing, spacing: 2) {
+                if exercise.targetWeight > 0 {
                     Text("\(Int(exercise.targetWeight)) lb")
                         .font(.subheadline.monospaced().bold())
                         .foregroundColor(.tb3Accent)
-
-                    if !compact, !exercise.plates.isEmpty {
-                        Text(formatPlates(exercise.plates))
-                            .font(.caption2)
-                            .foregroundStyle(Color.tb3Muted)
-                    }
+                } else if exercise.liftName == LiftName.weightedPullUp.rawValue {
+                    Text("BW")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.tb3Muted)
                 }
-            } else if exercise.liftName == LiftName.weightedPullUp.rawValue {
-                Text("BW")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.tb3Muted)
+            }
+
+            if !compact, !exercise.plates.isEmpty {
+                let isBodyweight = exercise.liftName == LiftName.weightedPullUp.rawValue
+                PlateDisplayView(
+                    result: PlateResult(
+                        plates: exercise.plates,
+                        displayText: "",
+                        achievable: true,
+                        isBarOnly: false,
+                        isBodyweightOnly: false,
+                        isBelowBar: false
+                    ),
+                    isBodyweight: isBodyweight
+                )
             }
         }
     }
 
-    private func formatPlates(_ plates: [PlateCount]) -> String {
-        plates.map { plate in
-            if plate.count == 1 {
-                return "\(formatWeight(plate.weight))"
-            } else {
-                return "\(plate.count)\u{00D7}\(formatWeight(plate.weight))"
-            }
-        }.joined(separator: " + ")
-    }
-
-    private func formatWeight(_ w: Double) -> String {
-        w.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int(w))" : String(format: "%.1f", w)
-    }
-
     private func formatWeekSetsReps() -> String {
         let percentage = "\(week.percentage)%"
+
+        let repsStr: String
+        switch week.repsPerSet {
+        case .single(let r):
+            repsStr = "\(r)"
+        case .array(let arr):
+            repsStr = arr.map { "\($0)" }.joined(separator: ",")
+        }
+
         if let minSets = week.minSets, let maxSets = week.maxSets, minSets != maxSets {
-            return "\(minSets)-\(maxSets) sets @ \(percentage)"
+            return "\(minSets)-\(maxSets)X\(repsStr) @ \(percentage)"
         } else if let maxSets = week.maxSets {
-            return "\(maxSets) sets @ \(percentage)"
+            return "\(maxSets)X\(repsStr) @ \(percentage)"
         }
         return "@ \(percentage)"
     }

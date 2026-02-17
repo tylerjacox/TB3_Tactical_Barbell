@@ -11,9 +11,10 @@ struct HistoryView: View {
             ScreenHeader(title: "History")
 
             Picker("View", selection: $selectedTab) {
-                Text("Chart").tag(0)
-                Text("Max Tests").tag(1)
-                Text("Sessions").tag(2)
+                Text("Calendar").tag(0)
+                Text("Chart").tag(1)
+                Text("Max Tests").tag(2)
+                Text("Sessions").tag(3)
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 16)
@@ -21,8 +22,10 @@ struct HistoryView: View {
 
             switch selectedTab {
             case 0:
-                MaxChartView(maxTests: appState.maxTestHistory)
+                CalendarHistoryView(sessions: appState.sessionHistory)
             case 1:
+                MaxChartView(maxTests: appState.maxTestHistory)
+            case 2:
                 maxTestList
             default:
                 sessionList

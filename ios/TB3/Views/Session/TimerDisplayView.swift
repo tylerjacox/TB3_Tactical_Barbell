@@ -11,7 +11,7 @@ struct TimerDisplayView: View {
         VStack(spacing: 4) {
             // Phase label
             Text(phaseLabel)
-                .font(.caption)
+                .font(.subheadline.bold())
                 .foregroundStyle(Color.tb3Muted)
 
             // Time display

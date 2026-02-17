@@ -42,14 +42,42 @@ Cast your workout to any TV with a two-column layout optimized for 16:9 screens.
 
 - **iOS Optimized** — Safe area insets, Dynamic Type support, haptic feedback, standalone display
 
+## Native iOS App
+
+A native SwiftUI companion app with full feature parity. Shares the same Cognito auth and sync backend as the PWA.
+
+- **SwiftUI + SwiftData** with `@Observable` state management
+- **Dark theme** matching the web app (pure black OLED background, #1A1A1A cards, #FF9500 accent)
+- **Chromecast support** via Google Cast SDK (CocoaPods)
+- **Visual plate loading** — barbell and belt diagrams with competition plate colors
+- **Two-phase timer** — rest count-up with overtime + exercise duration tracking
+- **Voice announcements** — countdown milestones with configurable voice
+- **Calendar history** — monthly calendar view with workout dots
+- **Custom tab bar** — avoids iOS 26 floating glass style
+
+### Build & Run
+
+```bash
+cd ios
+pod install
+xcodebuild -workspace TB3.xcworkspace -scheme TB3 -sdk iphonesimulator \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max' build
+```
+
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
+| **Web** | |
 | UI Framework | [Preact](https://preactjs.com/) 10 + [Preact Signals](https://preactjs.com/guide/v10/signals/) |
 | Build | [Vite](https://vitejs.dev/) 6 + TypeScript 5 |
 | PWA | [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) (Workbox) |
 | Storage | IndexedDB via [idb-keyval](https://github.com/nicedoc/idb-keyval) |
+| **iOS** | |
+| UI Framework | SwiftUI + SwiftData |
+| State | `@Observable` AppState + Preact Signals-style architecture |
+| Cast | Google Cast SDK via CocoaPods |
+| **Shared Backend** | |
 | Auth | [Amazon Cognito](https://aws.amazon.com/cognito/) (SRP + Google OAuth2 PKCE) |
 | API | AWS API Gateway HTTP API + Lambda (Node.js 20) |
 | Database | DynamoDB (single-table, PAY_PER_REQUEST) |
@@ -121,6 +149,30 @@ TB3_PWA/
 │   │   ├── setup-deployer.sh     # IAM user creation script
 │   │   └── tb3-deployer-policy.json
 │   └── package.json
+├── ios/                          # Native iOS app
+│   ├── TB3/
+│   │   ├── Calculators/          # 1RM and plate math (mirrors web)
+│   │   ├── Config/               # App configuration
+│   │   ├── Extensions/           # Color+TB3, Date+Formatting, Keychain
+│   │   ├── Models/               # SwiftData models + sync payloads
+│   │   ├── Networking/           # API client, auth, sync, token management
+│   │   ├── Services/             # Feedback (haptics/voice), validation, export/import
+│   │   ├── State/                # AppState, AuthState, SyncState, CastState, ActiveSession
+│   │   ├── Templates/            # Template definitions + schedule generator
+│   │   ├── ViewModels/           # Auth, Onboarding, Profile, Session view models
+│   │   └── Views/                # SwiftUI views (Auth, Dashboard, History, Onboarding, Profile, Program, Session)
+│   ├── TB3Tests/
+│   │   ├── Calculators/          # OneRepMax + PlateCalculator tests
+│   │   ├── Extensions/           # Date formatting tests
+│   │   ├── Fixtures/             # Shared test fixtures
+│   │   ├── Models/               # Enum + SyncPayload Codable tests
+│   │   ├── Services/             # Validation + FeedbackService tests
+│   │   ├── State/                # AppState tests
+│   │   ├── Templates/            # Schedule generator + template definition tests
+│   │   └── ViewModels/           # SessionViewModel tests
+│   ├── TB3.xcodeproj/
+│   ├── TB3.xcworkspace/          # Use this (CocoaPods)
+│   └── Podfile
 ├── deploy.sh                     # Build + S3 sync + CloudFront invalidation
 └── .gitignore
 ```
@@ -216,6 +268,40 @@ These are injected at build time by Vite. For production deploys, `deploy.sh` ge
 | **Grey Man** | 3 | 12 weeks | Extended cycle, all cluster lifts every session |
 
 All templates follow the Tactical Barbell periodization model with progressive percentage loading across weeks.
+
+## Testing
+
+### Web (Vitest)
+
+```bash
+cd app && npm test
+```
+
+167 tests across 11 files covering calculators, templates, schedule generation, validation, storage, and export/import.
+
+### iOS (XCTest)
+
+```bash
+cd ios
+xcodebuild -workspace TB3.xcworkspace -scheme TB3 -sdk iphonesimulator \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max' test
+```
+
+174 tests across 12 files:
+
+| Suite | Tests | Coverage |
+|---|---|---|
+| SessionViewModelTests | 24 | Session state, set completion, undo, timer, exercise navigation |
+| SyncPayloadTests | 18 | Codable round-trips for all sync types, RepsPerSet encoding |
+| TemplateDefinitionTests | 18 | All 7 templates, session counts, percentages, set ranges |
+| ScheduleGeneratorTests | 16 | Full schedule generation, plate breakdowns, week progression |
+| OneRepMaxCalculatorTests | 15 | Epley formula, training max, rounding, percentage tables |
+| PlateCalculatorTests | 15 | Barbell/belt loading, greedy algorithm, edge cases |
+| EnumTests | 15 | LiftName, TemplateId, TimerPhase, WorkoutStatus, SoundMode |
+| AppStateTests | 14 | Current lifts derivation, max type handling, schedule staleness |
+| DateFormattingTests | 14 | ISO8601 parsing/output, display formats, ID generation |
+| ValidationServiceTests | 14 | Runtime validation + 12-step import validation |
+| FeedbackServiceTests | 11 | Voice milestones, configuration, sound modes |
 
 ## Architecture
 

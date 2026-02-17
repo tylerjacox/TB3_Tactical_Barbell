@@ -52,7 +52,7 @@ final class OneRepMaxCalculatorTests: XCTestCase {
     // MARK: - roundWeight
 
     func testRoundWeightTo2_5() {
-        XCTAssertEqual(OneRepMaxCalculator.roundWeight(201.3, increment: 2.5), 200)
+        XCTAssertEqual(OneRepMaxCalculator.roundWeight(201.3, increment: 2.5), 202.5)
         XCTAssertEqual(OneRepMaxCalculator.roundWeight(201.5, increment: 2.5), 202.5)
         XCTAssertEqual(OneRepMaxCalculator.roundWeight(203.75, increment: 2.5), 205)
     }

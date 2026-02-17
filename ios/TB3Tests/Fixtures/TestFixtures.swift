@@ -33,7 +33,7 @@ enum TestFixtures {
         reps: Int = 5
     ) -> DerivedLiftEntry {
         let oneRepMax = OneRepMaxCalculator.calculateOneRepMax(weight: weight, reps: reps)
-        let workingMax = OneRepMaxCalculator.calculateTrainingMax(oneRepMax)
+        let workingMax = OneRepMaxCalculator.calculateTrainingMax(oneRepMax: oneRepMax)
         return DerivedLiftEntry(
             name: name,
             weight: weight,
@@ -65,7 +65,7 @@ enum TestFixtures {
         reps: Int = 5
     ) -> SyncOneRepMaxTest {
         let oneRepMax = OneRepMaxCalculator.calculateOneRepMax(weight: weight, reps: reps)
-        let workingMax = OneRepMaxCalculator.calculateTrainingMax(oneRepMax)
+        let workingMax = OneRepMaxCalculator.calculateTrainingMax(oneRepMax: oneRepMax)
         return SyncOneRepMaxTest(
             id: generateId(),
             date: "2024-01-01",

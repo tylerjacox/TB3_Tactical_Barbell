@@ -1,6 +1,7 @@
 // TB3 iOS — Profile ViewModel
 
 import Foundation
+import AVFoundation
 
 @MainActor @Observable
 final class ProfileViewModel {
@@ -36,8 +37,15 @@ final class ProfileViewModel {
             expandedLift = nil
         } else {
             expandedLift = liftName
-            liftWeight = ""
-            liftReps = ""
+            // Pre-fill with last saved weight/reps
+            if let current = appState.currentLifts.first(where: { $0.name == liftName }) {
+                liftWeight = current.weight.truncatingRemainder(dividingBy: 1) == 0
+                    ? "\(Int(current.weight))" : String(format: "%.1f", current.weight)
+                liftReps = "\(current.reps)"
+            } else {
+                liftWeight = ""
+                liftReps = ""
+            }
         }
     }
 
@@ -107,6 +115,25 @@ final class ProfileViewModel {
     func updateVoice(_ enabled: Bool) {
         appState.profile.voiceAnnouncements = enabled
         saveProfile()
+    }
+
+    func updateVoiceName(_ name: String?) {
+        appState.profile.voiceName = name
+        saveProfile()
+    }
+
+    private var previewSynthesizer = AVSpeechSynthesizer()
+
+    func previewVoice(_ voiceName: String?) {
+        previewSynthesizer.stopSpeaking(at: .immediate)
+        let utterance = AVSpeechUtterance(string: "Three, two, one, Go")
+        utterance.rate = 0.55
+        if let voiceName, let voice = AVSpeechSynthesisVoice.speechVoices().first(where: { $0.name == voiceName }) {
+            utterance.voice = voice
+        } else {
+            utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+        }
+        previewSynthesizer.speak(utterance)
     }
 
     // MARK: - Sync

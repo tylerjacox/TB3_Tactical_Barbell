@@ -15,51 +15,64 @@ struct SessionView: View {
                 topBar
 
                 if let exercise = vm.currentExercise {
-                    ScrollView {
-                        VStack(spacing: 24) {
-                            // Exercise info
-                            exerciseInfo(exercise)
-
-                            // Set dots
-                            SetDotIndicators(sets: vm.currentSets)
-
-                            // Plates
-                            PlateDisplayView(plates: exercise.plates, isBodyweight: exercise.isBodyweight)
-
-                            // Timer
-                            if vm.timerPhase != nil {
-                                TimerDisplayView(
-                                    elapsed: vm.timerElapsed,
-                                    phase: vm.timerPhase,
-                                    isOvertime: vm.isOvertime
-                                )
-                            }
-                        }
-                        .padding()
-                    }
-
-                    Spacer()
-
-                    // Exercise pager dots
-                    if let session = vm.session {
-                        ExerciseDotIndicators(
-                            exercises: session.exercises,
-                            sets: session.sets,
-                            currentIndex: session.currentExerciseIndex,
-                            onSelect: { vm.goToExercise($0) }
-                        )
-                        .padding(.bottom, 8)
-                    }
-
-                    // Undo toast
-                    if let undoSetNum = vm.undoSetNumber {
-                        undoToast(setNumber: undoSetNum)
-                    }
-
-                    // Main action button
-                    mainButton
+                    // Exercise info
+                    exerciseInfo(exercise)
                         .padding(.horizontal)
-                        .padding(.bottom, 16)
+
+                    // Set dots
+                    SetDotIndicators(sets: vm.currentSets)
+                        .padding(.top, 12)
+
+                    // Plates — fills all remaining space (single Spacer above + below)
+                    Spacer(minLength: 8)
+
+                    PlateDisplayView(
+                        result: PlateResult(
+                            plates: exercise.plates,
+                            displayText: "",
+                            achievable: true,
+                            isBarOnly: exercise.plates.isEmpty && !exercise.isBodyweight,
+                            isBodyweightOnly: exercise.isBodyweight && exercise.plates.isEmpty,
+                            isBelowBar: false
+                        ),
+                        isBodyweight: exercise.isBodyweight,
+                        scale: 2.5
+                    )
+
+                    Spacer(minLength: 8)
+
+                    // Bottom section — fixed height, pinned to bottom
+                    VStack(spacing: 0) {
+                        // Timer (always reserve space to prevent layout shift)
+                        TimerDisplayView(
+                            elapsed: vm.timerElapsed,
+                            phase: vm.timerPhase,
+                            isOvertime: vm.isOvertime
+                        )
+                        .opacity(vm.timerPhase != nil ? 1 : 0)
+                        .padding(.bottom, 12)
+
+                        // Exercise pager dots
+                        if let session = vm.session {
+                            ExerciseDotIndicators(
+                                exercises: session.exercises,
+                                sets: session.sets,
+                                currentIndex: session.currentExerciseIndex,
+                                onSelect: { vm.goToExercise($0) }
+                            )
+                            .padding(.bottom, 8)
+                        }
+
+                        // Undo toast (overlaid so it doesn't shift layout)
+                        undoToastOverlay
+                            .padding(.bottom, 8)
+
+                        // Main action button
+                        mainButton
+                            .padding(.horizontal)
+                            .padding(.bottom, 16)
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
@@ -120,27 +133,28 @@ struct SessionView: View {
     private func exerciseInfo(_ exercise: ActiveSessionExercise) -> some View {
         VStack(spacing: 8) {
             Text(LiftName(rawValue: exercise.liftName)?.displayName ?? exercise.liftName)
-                .font(.title.bold())
+                .font(.system(size: 34, weight: .bold))
 
             if exercise.targetWeight > 0 {
                 Text("\(Int(exercise.targetWeight)) lb")
-                    .font(.title2.monospaced())
+                    .font(.system(size: 40, weight: .semibold, design: .monospaced))
                     .foregroundColor(.tb3Accent)
             } else if exercise.isBodyweight {
                 Text("Bodyweight")
-                    .font(.title2)
+                    .font(.system(size: 40, weight: .semibold))
                     .foregroundStyle(Color.tb3Muted)
             }
 
-            // Reps info
-            let repsStr: String = {
+            // Sets x Reps info
+            let setsRepsStr: String = {
+                let sets = vm.currentSets.count
                 switch exercise.repsPerSet {
-                case .single(let r): return "\(r) reps"
-                case .array(let arr): return arr.map(String.init).joined(separator: ", ") + " reps"
+                case .single(let r): return "\(sets) sets \u{00D7} \(r) reps"
+                case .array(let arr): return "\(sets) sets \u{00D7} \(arr.map(String.init).joined(separator: ",")) reps"
                 }
             }()
-            Text(repsStr)
-                .font(.subheadline)
+            Text(setsRepsStr)
+                .font(.title3)
                 .foregroundStyle(Color.tb3Muted)
         }
     }
@@ -149,7 +163,44 @@ struct SessionView: View {
 
     private var mainButton: some View {
         Group {
-            if vm.timerPhase == .rest {
+            if vm.allSetsComplete {
+                // All sets done — advance or finish
+                if let session = vm.session, session.currentExerciseIndex < session.exercises.count - 1 {
+                    Button {
+                        vm.goToExercise(session.currentExerciseIndex + 1)
+                    } label: {
+                        Text("Next Exercise")
+                            .fontWeight(.bold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.beginSetGreen)
+                    .controlSize(.large)
+                } else if vm.allExercisesComplete {
+                    Button {
+                        vm.endWorkoutEarly()
+                    } label: {
+                        Text("Finish Workout")
+                            .fontWeight(.bold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.beginSetGreen)
+                    .controlSize(.large)
+                } else {
+                    Button {} label: {
+                        Text("All Sets Done")
+                            .fontWeight(.bold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .disabled(true)
+                }
+            } else if vm.timerPhase == .rest {
                 // Rest phase: "Begin Set X"
                 Button {
                     vm.completeSet()
@@ -162,17 +213,6 @@ struct SessionView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(.beginSetGreen)
                 .controlSize(.large)
-            } else if vm.allSetsComplete {
-                // All sets done
-                Button {} label: {
-                    Text("All Sets Done")
-                        .fontWeight(.bold)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-                .disabled(true)
             } else {
                 // Exercise phase or no timer: "Complete Set X / Y"
                 Button {
@@ -192,9 +232,9 @@ struct SessionView: View {
 
     // MARK: - Undo Toast
 
-    private func undoToast(setNumber: Int) -> some View {
+    private var undoToastOverlay: some View {
         HStack {
-            Text("Set \(setNumber) complete")
+            Text("Set \(vm.undoSetNumber ?? 0) complete")
                 .font(.subheadline)
             Spacer()
             Button("Undo") {
@@ -207,7 +247,8 @@ struct SessionView: View {
         .cornerRadius(12)
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.tb3Border, lineWidth: 1))
         .padding(.horizontal)
-        .transition(.move(edge: .bottom).combined(with: .opacity))
+        .opacity(vm.undoSetNumber != nil ? 1 : 0)
+        .allowsHitTesting(vm.undoSetNumber != nil)
     }
 
     // MARK: - Navigation Chevrons
