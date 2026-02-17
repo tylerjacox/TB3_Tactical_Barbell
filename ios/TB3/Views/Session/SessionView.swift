@@ -1,6 +1,27 @@
 // TB3 iOS — Session View (full-screen workout)
 
 import SwiftUI
+import UIKit
+
+// MARK: - GCKUICastButton Wrapper
+
+/// Wraps the GoogleCast SDK's GCKUICastButton for SwiftUI.
+/// Handles device picker automatically and shows correct cast icon state.
+struct CastButtonView: UIViewRepresentable {
+    var tintConnected: UIColor = .systemOrange
+    var tintDisconnected: UIColor = UIColor(white: 0.6, alpha: 1.0)
+
+    func makeUIView(context: Context) -> GCKUICastButton {
+        let button = GCKUICastButton(frame: CGRect(x: 0, y: 0, width: 24, height: 24))
+        button.tintColor = tintDisconnected
+        return button
+    }
+
+    func updateUIView(_ button: GCKUICastButton, context: Context) {
+        let isConnected = GCKCastContext.sharedInstance().sessionManager.hasConnectedCastSession()
+        button.tintColor = isConnected ? tintConnected : tintDisconnected
+    }
+}
 
 struct SessionView: View {
     @Environment(AppState.self) var appState
@@ -112,6 +133,9 @@ struct SessionView: View {
             }
 
             Spacer()
+
+            CastButtonView()
+                .frame(width: 24, height: 24)
 
             Menu {
                 if vm.timerPhase == .exercise {

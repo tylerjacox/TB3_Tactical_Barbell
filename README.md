@@ -163,7 +163,7 @@ TB3_PWA/
 │   │   ├── Extensions/           # Color+TB3, Date+Formatting, Keychain
 │   │   ├── Models/               # SwiftData models + sync payloads
 │   │   ├── Networking/           # API client, auth, sync, token management
-│   │   ├── Services/             # Feedback (haptics/voice), validation, export/import
+│   │   ├── Services/             # Feedback (haptics/voice), validation, export/import, Cast SDK bridge
 │   │   ├── State/                # AppState, AuthState, SyncState, CastState, ActiveSession
 │   │   ├── Templates/            # Template definitions + schedule generator
 │   │   ├── ViewModels/           # Auth, Onboarding, Profile, Session view models

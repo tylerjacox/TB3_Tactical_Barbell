@@ -5,6 +5,7 @@ import SwiftData
 
 @main
 struct TB3App: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @State private var appState = AppState()
 
     init() {
@@ -41,6 +42,8 @@ struct RootView: View {
     @State private var authService: AuthService?
     @State private var syncCoordinator: SyncCoordinator?
     @State private var feedbackService = FeedbackService()
+    @State private var castService: CastService?
+    @State private var castAdapter: GCKCastSessionAdapter?
     @State private var selectedTab = 0
 
     var body: some View {
@@ -73,7 +76,8 @@ struct RootView: View {
                 SessionView(vm: SessionViewModel(
                     appState: appState,
                     dataStore: dataStore,
-                    feedback: feedbackService
+                    feedback: feedbackService,
+                    castService: castService
                 ))
                 .environment(appState)
             }
@@ -89,6 +93,12 @@ struct RootView: View {
         .onChange(of: appState.profile.soundMode) { _, _ in configureFeedback() }
         .onChange(of: appState.profile.voiceAnnouncements) { _, _ in configureFeedback() }
         .onChange(of: appState.profile.voiceName) { _, _ in configureFeedback() }
+        .onChange(of: appState.activeSession) { oldVal, newVal in
+            // Send idle message when workout ends
+            if newVal == nil && oldVal != nil {
+                castService?.sendSessionState(nil)
+            }
+        }
     }
 
     // MARK: - Main Tab View
@@ -114,7 +124,7 @@ struct RootView: View {
                 onNavigateToProfile: { selectedTab = 3 },
                 onStartWorkout: { exercises, week, program in
                     if let dataStore {
-                        let sessionVM = SessionViewModel(appState: appState, dataStore: dataStore, feedback: feedbackService)
+                        let sessionVM = SessionViewModel(appState: appState, dataStore: dataStore, feedback: feedbackService, castService: castService)
                         sessionVM.startSession(exercises: exercises, week: week, program: program)
                     }
                 }
@@ -172,6 +182,16 @@ struct RootView: View {
 
         // Configure feedback from profile settings
         configureFeedback()
+
+        // Cast setup
+        let cast = CastService(castState: appState.castState)
+        let adapter = GCKCastSessionAdapter(castService: cast, castState: appState.castState)
+        adapter.onRequestSendState = { [weak cast] in
+            cast?.sendSessionStateImmediate(appState.activeSession)
+        }
+        adapter.start()
+        self.castService = cast
+        self.castAdapter = adapter
 
         // Initialize auth (check stored tokens, refresh)
         await auth.initAuth()

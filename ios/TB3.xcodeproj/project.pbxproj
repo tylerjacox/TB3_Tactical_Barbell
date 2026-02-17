@@ -60,6 +60,8 @@
 		B91136B129C1CBABC983FB76 /* SessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B610F83ACC5BFD16BFC436C6 /* SessionViewModel.swift */; };
 		B9477A13413CB0B5E364C080 /* OneRepMaxCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D9FB1180EA46AF25BB041EB /* OneRepMaxCalculator.swift */; };
 		B967CF42A6D8E082F7E373C5 /* TestFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA98F7B155E47A0CB7906055 /* TestFixtures.swift */; };
+		CAST0ADP0001000000000001 /* GCKCastSessionAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAST0ADP0002000000000001 /* GCKCastSessionAdapter.swift */; };
+		CAST0DEL0001000000000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAST0DEL0002000000000001 /* AppDelegate.swift */; };
 		C6F35ACF92059BC700EA014A /* CastService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231B17E5B68E62B59A5A6786 /* CastService.swift */; };
 		CALH0001000000000001 /* CalendarHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CALH0002000000000001 /* CalendarHistoryView.swift */; };
 		D27EFDEE74BFC1C81DF932BA /* OneRepMaxCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8260215234F8588409C363ED /* OneRepMaxCalculatorTests.swift */; };
@@ -118,6 +120,9 @@
 		1B2C9D4F405018D43B2EFBEA /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
 		1EF7A9F0D64E852BA938CD16 /* AuthState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthState.swift; sourceTree = "<group>"; };
 		231B17E5B68E62B59A5A6786 /* CastService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CastService.swift; sourceTree = "<group>"; };
+		CAST0ADP0002000000000001 /* GCKCastSessionAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GCKCastSessionAdapter.swift; sourceTree = "<group>"; };
+		CAST0DEL0002000000000001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		CAST0BRH0002000000000001 /* TB3-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TB3-Bridging-Header.h"; sourceTree = "<group>"; };
 		234223E4428B350E9B415833 /* TimerDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerDisplayView.swift; sourceTree = "<group>"; };
 		27DF0AB111D7D356E28E2AC2 /* ExportImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportImportService.swift; sourceTree = "<group>"; };
 		281E23C5537673A5091ADF2E /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
@@ -416,6 +421,7 @@
 			isa = PBXGroup;
 			children = (
 				231B17E5B68E62B59A5A6786 /* CastService.swift */,
+				CAST0ADP0002000000000001 /* GCKCastSessionAdapter.swift */,
 				4F00869A16B0671D41A2FE30 /* DataStore.swift */,
 				27DF0AB111D7D356E28E2AC2 /* ExportImportService.swift */,
 				B60EF9BFFCEF8F773A38BD1F /* FeedbackService.swift */,
@@ -500,7 +506,9 @@
 				AA90032934E3F6F4C9DBE360 /* Templates */,
 				0477C72879E9FE175266E0BE /* ViewModels */,
 				749061242760A690BFC9EFA9 /* Views */,
+				CAST0DEL0002000000000001 /* AppDelegate.swift */,
 				062D28773D1FF8217DD0A936 /* TB3App.swift */,
+				CAST0BRH0002000000000001 /* TB3-Bridging-Header.h */,
 			);
 			path = TB3;
 			sourceTree = "<group>";
@@ -715,6 +723,8 @@
 				900EFA92DC911F3ED1E1F19B /* AuthService.swift in Sources */,
 				D72381D4DDA2E7860B4B7849 /* AuthState.swift in Sources */,
 				D3523EFE6608D5E8D5E6E4ED /* AuthViewModel.swift in Sources */,
+				CAST0ADP0001000000000001 /* GCKCastSessionAdapter.swift in Sources */,
+				CAST0DEL0001000000000001 /* AppDelegate.swift in Sources */,
 				C6F35ACF92059BC700EA014A /* CastService.swift in Sources */,
 				A04A09D0E4D557A8112AF3CB /* CastState.swift in Sources */,
 				B707B89B5FE6AA858C0B6935 /* Color+TB3.swift in Sources */,
@@ -805,6 +815,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.tb3.app;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "TB3/TB3-Bridging-Header.h";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -907,6 +918,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.tb3.app;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "TB3/TB3-Bridging-Header.h";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

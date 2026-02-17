@@ -24,11 +24,17 @@ final class SessionViewModel {
     private let appState: AppState
     private let dataStore: DataStore
     private let feedback: FeedbackService
+    private let castService: CastService?
 
-    init(appState: AppState, dataStore: DataStore, feedback: FeedbackService) {
+    init(appState: AppState, dataStore: DataStore, feedback: FeedbackService, castService: CastService? = nil) {
         self.appState = appState
         self.dataStore = dataStore
         self.feedback = feedback
+        self.castService = castService
+    }
+
+    private func sendCastUpdate() {
+        castService?.sendSessionState(appState.activeSession)
     }
 
     // MARK: - Convenience Accessors
@@ -129,6 +135,7 @@ final class SessionViewModel {
             restCompleteFired = false
             appState.activeSession = session
             session.save()
+            sendCastUpdate()
             return
         }
 
@@ -177,6 +184,7 @@ final class SessionViewModel {
             if nextExerciseIndex < session.exercises.count {
                 appState.activeSession = session
                 session.save()
+                sendCastUpdate()
 
                 // Delay auto-advance 1.5 seconds
                 Task {
@@ -189,6 +197,7 @@ final class SessionViewModel {
                     s.timerState = nil
                     appState.activeSession = s
                     s.save()
+                    sendCastUpdate()
                 }
                 return
             }
@@ -196,6 +205,7 @@ final class SessionViewModel {
 
         appState.activeSession = session
         session.save()
+        sendCastUpdate()
 
         // Check if all exercises complete
         if session.sets.allSatisfy(\.completed) {
@@ -227,6 +237,7 @@ final class SessionViewModel {
 
         appState.activeSession = session
         session.save()
+        sendCastUpdate()
     }
 
     // MARK: - Exercise Navigation
@@ -245,6 +256,7 @@ final class SessionViewModel {
 
         appState.activeSession = session
         session.save()
+        sendCastUpdate()
     }
 
     // MARK: - Start Session
@@ -304,6 +316,7 @@ final class SessionViewModel {
         appState.activeSession = session
         session.save()
         appState.isSessionPresented = true
+        castService?.sendSessionStateImmediate(appState.activeSession)
     }
 
     // MARK: - Complete Session
@@ -412,6 +425,7 @@ final class SessionViewModel {
         session.timerState = nil
         appState.activeSession = session
         session.save()
+        sendCastUpdate()
     }
 
     // MARK: - Rest Duration
