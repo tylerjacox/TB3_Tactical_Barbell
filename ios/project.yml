@@ -1,0 +1,56 @@
+name: TB3
+options:
+  bundleIdPrefix: com.tb3
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.2"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+
+packages:
+  aws-sdk-swift:
+    url: https://github.com/awslabs/aws-sdk-swift.git
+    from: "1.0.0"
+
+targets:
+  TB3:
+    type: application
+    platform: iOS
+    sources:
+      - path: TB3
+        excludes:
+          - "**/*.plist"
+    info:
+      path: TB3/Info.plist
+      properties:
+        CFBundleDisplayName: TB3
+        CFBundleName: TB3
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tb3.app
+        INFOPLIST_FILE: TB3/Info.plist
+        GENERATE_INFOPLIST_FILE: false
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_STYLE: Automatic
+        SWIFT_STRICT_CONCURRENCY: complete
+    dependencies:
+      - package: aws-sdk-swift
+        product: AWSCognitoIdentityProvider
+
+  TB3Tests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: TB3Tests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tb3.app.tests
+    dependencies:
+      - target: TB3

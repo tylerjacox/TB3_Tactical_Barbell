@@ -1,0 +1,16 @@
+PODS:
+  - google-cast-sdk (4.8.4)
+
+DEPENDENCIES:
+  - google-cast-sdk (~> 4.8)
+
+SPEC REPOS:
+  trunk:
+    - google-cast-sdk
+
+SPEC CHECKSUMS:
+  google-cast-sdk: 32f65af50d164e3c475e79ad123db3cc26fbcd37
+
+PODFILE CHECKSUM: e0a0cdd3b8415bba99cebb100fb350d5b55a28c7
+
+COCOAPODS: 1.16.2

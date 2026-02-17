@@ -23,3 +23,9 @@ infra/cdk.out/
 
 # Logs
 *.log
+
+# iOS
+ios/Pods/
+ios/TB3.xcodeproj/xcuserdata/
+ios/TB3.xcworkspace/xcuserdata/
+ios/DerivedData/

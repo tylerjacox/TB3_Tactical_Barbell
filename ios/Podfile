@@ -1,0 +1,9 @@
+# TB3 iOS — CocoaPods (for Google Cast SDK only)
+# All other dependencies use Swift Package Manager.
+
+platform :ios, '17.0'
+
+target 'TB3' do
+  use_frameworks!
+  pod 'google-cast-sdk', '~> 4.8'
+end
