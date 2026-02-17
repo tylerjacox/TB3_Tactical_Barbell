@@ -89,6 +89,7 @@
 		TEST0001E00000000001 /* ValidationServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TEST0002E00000000001 /* ValidationServiceTests.swift */; };
 		TEST0001F00000000001 /* FeedbackServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TEST0002F00000000001 /* FeedbackServiceTests.swift */; };
 		TEST0001G00000000001 /* DateFormattingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TEST0002G00000000001 /* DateFormattingTests.swift */; };
+		ICON0001000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ICON0002000000000001 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -187,6 +188,7 @@
 		TEST0002E00000000001 /* ValidationServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationServiceTests.swift; sourceTree = "<group>"; };
 		TEST0002F00000000001 /* FeedbackServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackServiceTests.swift; sourceTree = "<group>"; };
 		TEST0002G00000000001 /* DateFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormattingTests.swift; sourceTree = "<group>"; };
+		ICON0002000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -200,6 +202,17 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		ICON0003000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ICON0001000000000001 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXGroup section */
 		0477C72879E9FE175266E0BE /* ViewModels */ = {
@@ -527,6 +540,7 @@
 		FFB9B423EE618FD1B2FFAB26 /* TB3 */ = {
 			isa = PBXGroup;
 			children = (
+				ICON0002000000000001 /* Assets.xcassets */,
 				0F70CE81084AE3D7D4DB7915 /* Calculators */,
 				572AFCFB5C70A4F495F87811 /* Config */,
 				2DC57768A6203E3F1483C5E5 /* Extensions */,
@@ -551,6 +565,7 @@
 			buildPhases = (
 				835F07A2229AC02ECD5A9840 /* [CP] Check Pods Manifest.lock */,
 				CD4445A772282B4E56DB5A34 /* Sources */,
+				ICON0003000000000001 /* Resources */,
 				4B0A23828E515C67C83196E9 /* Frameworks */,
 				5676F9D0D16C3994EBE3078C /* [CP] Copy Pods Resources */,
 			);

@@ -46,6 +46,13 @@ Cast your workout to any TV with a two-column layout optimized for 16:9 screens.
 
 A native SwiftUI companion app with full feature parity. Shares the same Cognito auth and sync backend as the PWA.
 
+<p align="center">
+  <img src="docs/ios-dashboard.png" alt="Dashboard with plate loading" width="200">
+  <img src="docs/ios-program.png" alt="Program schedule view" width="200">
+  <img src="docs/ios-history.png" alt="Calendar history view" width="200">
+  <img src="docs/ios-profile.png" alt="Profile and settings" width="200">
+</p>
+
 - **SwiftUI + SwiftData** with `@Observable` state management
 - **Dark theme** matching the web app (pure black OLED background, #1A1A1A cards, #FF9500 accent)
 - **Chromecast support** via Google Cast SDK (CocoaPods)
