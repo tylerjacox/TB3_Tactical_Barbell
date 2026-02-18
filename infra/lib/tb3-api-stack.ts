@@ -6,6 +6,7 @@ import * as apigateway from 'aws-cdk-lib/aws-apigatewayv2';
 import * as apiIntegrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as apiAuthorizers from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as path from 'path';
 import { Construct } from 'constructs';
 
@@ -17,6 +18,17 @@ interface Tb3ApiStackProps extends cdk.StackProps {
 export class Tb3ApiStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: Tb3ApiStackProps) {
     super(scope, id, props);
+
+    // Look up the user pool and client by hardcoded IDs to avoid cross-stack
+    // export drift. CDK version changes caused the cross-stack export logical
+    // IDs to change (UserPoolAuthorizerClient → AppClient), which blocks
+    // deployment. Using hardcoded IDs avoids the cross-stack export entirely.
+    const userPool = cognito.UserPool.fromUserPoolId(
+      this, 'ImportedUserPool', 'us-west-2_JwSNJXX9t',
+    );
+    const userPoolClient = cognito.UserPoolClient.fromUserPoolClientId(
+      this, 'ImportedUserPoolClient', '7ebq8hk7m52uqp636n31s7ussb',
+    );
 
     // DynamoDB table — single-table design
     // PK: USER#{cognitoUserId}, SK: entity type + ID
@@ -62,8 +74,8 @@ export class Tb3ApiStack extends cdk.Stack {
 
     const authorizer = new apiAuthorizers.HttpUserPoolAuthorizer(
       'CognitoAuthorizer',
-      props.userPool,
-      { userPoolClients: [props.userPoolClient] },
+      userPool,
+      { userPoolClients: [userPoolClient] },
     );
 
     httpApi.addRoutes({
@@ -71,6 +83,36 @@ export class Tb3ApiStack extends cdk.Stack {
       methods: [apigateway.HttpMethod.POST],
       integration: new apiIntegrations.HttpLambdaIntegration('SyncIntegration', syncFunction),
       authorizer,
+    });
+
+    // Strava token exchange proxy — keeps client_secret server-side
+    const stravaSecret = secretsmanager.Secret.fromSecretNameV2(
+      this, 'StravaOAuthSecret', 'tb3/strava-oauth',
+    );
+
+    const stravaTokenFunction = new lambdaNodejs.NodejsFunction(this, 'StravaTokenFunction', {
+      entry: path.join(__dirname, '../lambda/strava-token.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      environment: {
+        STRAVA_SECRET_NAME: stravaSecret.secretName,
+      },
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 256,
+      bundling: {
+        minify: true,
+        sourceMap: true,
+        externalModules: ['@aws-sdk/*'],
+      },
+    });
+
+    stravaSecret.grantRead(stravaTokenFunction);
+
+    // No auth required — the OAuth code is single-use
+    httpApi.addRoutes({
+      path: '/strava/token',
+      methods: [apigateway.HttpMethod.POST],
+      integration: new apiIntegrations.HttpLambdaIntegration('StravaTokenIntegration', stravaTokenFunction),
     });
 
     // Stack outputs

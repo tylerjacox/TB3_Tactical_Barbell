@@ -28,6 +28,15 @@ enum AppConfig {
     // Sync interval
     static let syncIntervalSeconds: TimeInterval = 300 // 5 minutes
 
+    // Strava
+    static let stravaClientId = "203521"
+    static let stravaCallbackScheme = "tb3"
+    static let stravaCallbackURL = "tb3://tb3"
+    static let stravaAuthURL = "https://www.strava.com/oauth/authorize"
+    static let stravaTokenProxyURL = "\(apiURL)/strava/token"
+    static let stravaAPIBaseURL = "https://www.strava.com/api/v3"
+    static let stravaDeauthorizeURL = "https://www.strava.com/oauth/deauthorize"
+
     // App version
     static let appVersion: String = {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"

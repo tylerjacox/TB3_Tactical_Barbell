@@ -105,4 +105,84 @@ final class FeedbackServiceTests: XCTestCase {
         }
         XCTAssertEqual(count, 8, "There should be exactly 8 milestone thresholds")
     }
+
+    // MARK: - Cast Connected Muting
+
+    func testCastConnectedDoesNotCrashOnFeedback() {
+        let service = FeedbackService()
+        service.configure(soundMode: "on", voiceEnabled: true, voiceName: nil, castConnected: true)
+        // All feedback methods should not crash even when cast-muted
+        service.setComplete()
+        service.exerciseComplete()
+        service.restComplete()
+        service.sessionComplete()
+        service.undo()
+        service.error()
+    }
+
+    func testCastDisconnectedDoesNotCrashOnFeedback() {
+        let service = FeedbackService()
+        service.configure(soundMode: "on", voiceEnabled: true, voiceName: nil, castConnected: false)
+        service.setComplete()
+        service.exerciseComplete()
+        service.restComplete()
+        service.sessionComplete()
+        service.undo()
+        service.error()
+    }
+
+    func testConfigureCastConnectedParameter() {
+        let service = FeedbackService()
+        // Default castConnected is false
+        service.configure(soundMode: "on", voiceEnabled: false, voiceName: nil)
+        // Should not crash
+
+        // Explicitly set castConnected
+        service.configure(soundMode: "on", voiceEnabled: false, voiceName: nil, castConnected: true)
+        // Should not crash
+    }
+
+    func testCastConnectedWithVibrateModeStillWorks() {
+        let service = FeedbackService()
+        // Vibrate mode with cast connected: haptics should still fire (they're phone-only)
+        service.configure(soundMode: "vibrate", voiceEnabled: false, voiceName: nil, castConnected: true)
+        service.setComplete()
+        service.exerciseComplete()
+        service.undo()
+        // No crash = haptics still work when cast connected
+    }
+
+    // MARK: - Sound Mode Variants
+
+    func testVibrateModeFeedback() {
+        let service = FeedbackService()
+        service.configure(soundMode: "vibrate", voiceEnabled: false, voiceName: nil)
+        service.setComplete()
+        service.exerciseComplete()
+        service.restComplete()
+        service.sessionComplete()
+        service.undo()
+        service.error()
+    }
+
+    func testSpeakMilestoneDoesNotCrash() {
+        let service = FeedbackService()
+        service.configure(soundMode: "on", voiceEnabled: true, voiceName: nil)
+        service.speakMilestone("One minute")
+        service.speakMilestone("Thirty seconds")
+        service.speakMilestone("5")
+    }
+
+    func testSpeakMilestoneWithCastConnectedDoesNotCrash() {
+        let service = FeedbackService()
+        service.configure(soundMode: "on", voiceEnabled: true, voiceName: nil, castConnected: true)
+        // Should be silently muted — no crash
+        service.speakMilestone("One minute")
+    }
+
+    func testSpeakTestDoesNotCrash() {
+        let service = FeedbackService()
+        service.configure(soundMode: "on", voiceEnabled: true, voiceName: nil)
+        service.speakTest()
+    }
 }

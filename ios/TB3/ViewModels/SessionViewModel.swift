@@ -25,12 +25,14 @@ final class SessionViewModel {
     private let dataStore: DataStore
     private let feedback: FeedbackService
     private let castService: CastService?
+    private let stravaService: StravaService?
 
-    init(appState: AppState, dataStore: DataStore, feedback: FeedbackService, castService: CastService? = nil) {
+    init(appState: AppState, dataStore: DataStore, feedback: FeedbackService, castService: CastService? = nil, stravaService: StravaService? = nil) {
         self.appState = appState
         self.dataStore = dataStore
         self.feedback = feedback
         self.castService = castService
+        self.stravaService = stravaService
     }
 
     private func sendCastUpdate() {
@@ -404,6 +406,11 @@ final class SessionViewModel {
                 persisted.lastModified = now
                 dataStore.saveActiveProgram(persisted)
             }
+        }
+
+        // Auto-share to Strava
+        if appState.stravaState.isConnected && appState.stravaState.autoShare {
+            Task { await stravaService?.shareActivity(session: log) }
         }
 
         // Clear active session

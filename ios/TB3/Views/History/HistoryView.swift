@@ -4,6 +4,7 @@ import SwiftUI
 
 struct HistoryView: View {
     @Environment(AppState.self) var appState
+    var stravaService: StravaService?
     @State private var selectedTab = 0
 
     var body: some View {
@@ -43,7 +44,7 @@ struct HistoryView: View {
             } else {
                 List {
                     ForEach(appState.sessionHistory.sorted(by: { $0.date > $1.date }), id: \.id) { session in
-                        SessionLogRow(session: session)
+                        SessionLogRow(session: session, stravaService: stravaService, stravaConnected: appState.stravaState.isConnected)
                     }
                 }
                 .listStyle(.plain)
@@ -111,7 +112,11 @@ struct HistoryView: View {
 
 struct SessionLogRow: View {
     let session: SyncSessionLog
+    var stravaService: StravaService?
+    var stravaConnected: Bool = false
     @State private var isExpanded = false
+    @State private var isSharing = false
+    @State private var shareResult: Bool?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -156,6 +161,42 @@ struct SessionLogRow: View {
                             .font(.caption)
                             .foregroundStyle(Color.tb3Muted)
                     }
+                    .padding(.leading, 12)
+                }
+
+                // Strava share button
+                if stravaConnected, let stravaService {
+                    HStack {
+                        Spacer()
+                        Button {
+                            isSharing = true
+                            shareResult = nil
+                            Task {
+                                await stravaService.shareActivity(session: session)
+                                isSharing = false
+                                shareResult = true
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                if isSharing {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                } else if shareResult == true {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(Color.tb3Success)
+                                } else {
+                                    Image(systemName: "arrow.up.forward.circle")
+                                        .foregroundStyle(Color(hex: 0xFC4C02))
+                                }
+                                Text(shareResult == true ? "Shared" : "Share to Strava")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(shareResult == true ? Color.tb3Success : Color(hex: 0xFC4C02))
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isSharing || shareResult == true)
+                    }
+                    .padding(.top, 4)
                     .padding(.leading, 12)
                 }
             }

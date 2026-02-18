@@ -40,6 +40,7 @@ Cast your workout to any TV with a two-column layout optimized for 16:9 screens.
   <img src="docs/cast-screen.png" alt="Chromecast workout display with two-column layout" width="720">
 </p>
 
+- **Strava Integration** — Share completed workouts to Strava as Weight Training activities with exercise details, weights, sets, and reps. OAuth2 connect/disconnect, auto-share toggle, and manual share from session history. Client secret stays server-side via Lambda proxy.
 - **iOS Optimized** — Safe area insets, Dynamic Type support, haptic feedback, standalone display
 
 ## Native iOS App
@@ -60,6 +61,7 @@ A native SwiftUI companion app with full feature parity. Shares the same Cognito
 - **Two-phase timer** — rest count-up with overtime + exercise duration tracking
 - **Voice announcements** — countdown milestones with configurable voice
 - **Calendar history** — monthly calendar view with workout dots
+- **Strava integration** — OAuth2 connect, auto-share workouts, manual share from history
 - **Custom tab bar** — avoids iOS 26 floating glass style
 
 ### Build & Run
@@ -151,7 +153,8 @@ TB3_PWA/
 │   │   ├── tb3-stack.ts          # S3, CloudFront, Cognito
 │   │   └── tb3-api-stack.ts      # API Gateway, Lambda, DynamoDB
 │   ├── lambda/
-│   │   └── sync.ts               # Sync endpoint (push/pull)
+│   │   ├── sync.ts               # Sync endpoint (push/pull)
+│   │   └── strava-token.ts       # Strava OAuth token exchange proxy
 │   ├── iam/
 │   │   ├── setup-deployer.sh     # IAM user creation script
 │   │   └── tb3-deployer-policy.json
@@ -163,8 +166,8 @@ TB3_PWA/
 │   │   ├── Extensions/           # Color+TB3, Date+Formatting, Keychain
 │   │   ├── Models/               # SwiftData models + sync payloads
 │   │   ├── Networking/           # API client, auth, sync, token management
-│   │   ├── Services/             # Feedback (haptics/voice), validation, export/import, Cast SDK bridge
-│   │   ├── State/                # AppState, AuthState, SyncState, CastState, ActiveSession
+│   │   ├── Services/             # Feedback (haptics/voice), validation, export/import, Cast SDK bridge, Strava
+│   │   ├── State/                # AppState, AuthState, SyncState, CastState, StravaState, ActiveSession
 │   │   ├── Templates/            # Template definitions + schedule generator
 │   │   ├── ViewModels/           # Auth, Onboarding, Profile, Session view models
 │   │   └── Views/                # SwiftUI views (Auth, Dashboard, History, Onboarding, Profile, Program, Session)
@@ -173,7 +176,7 @@ TB3_PWA/
 │   │   ├── Extensions/           # Date formatting tests
 │   │   ├── Fixtures/             # Shared test fixtures
 │   │   ├── Models/               # Enum + SyncPayload Codable tests
-│   │   ├── Services/             # Validation + FeedbackService tests
+│   │   ├── Services/             # Validation, FeedbackService, Cast, Strava tests
 │   │   ├── State/                # AppState tests
 │   │   ├── Templates/            # Schedule generator + template definition tests
 │   │   └── ViewModels/           # SessionViewModel tests
@@ -222,7 +225,7 @@ cd ..
 
 This creates:
 - **Tb3Stack** — S3 bucket, CloudFront distribution, Cognito User Pool
-- **Tb3ApiStack** — API Gateway, Lambda sync function, DynamoDB table
+- **Tb3ApiStack** — API Gateway, Lambda sync function, Strava token proxy, DynamoDB table
 
 ### 3. Build and deploy the app
 

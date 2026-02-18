@@ -18,6 +18,9 @@ final class AppState {
     // Cast
     var castState = CastState()
 
+    // Strava
+    var stravaState = StravaState()
+
     // Data — populated from SwiftData on init
     var profile: SyncProfile = SyncProfile(
         maxType: "training", roundingIncrement: 2.5, barbellWeight: 45,

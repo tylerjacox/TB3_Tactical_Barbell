@@ -29,6 +29,10 @@
 		<string>_googlecast._tcp</string>
 		<string>_6BA96B8F._googlecast._tcp</string>
 	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>strava</string>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

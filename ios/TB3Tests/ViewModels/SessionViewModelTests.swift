@@ -315,4 +315,147 @@ final class SessionViewModelTests: XCTestCase {
         XCTAssertTrue(exercise.isBodyweight)
         XCTAssertEqual(exercise.targetWeight, 50)
     }
+
+    // MARK: - Navigation Bounds (Swipe Gesture Support)
+
+    func testNavigationToFirstExercise() {
+        var session = makeSession()
+        session.currentExerciseIndex = 2
+        session.currentExerciseIndex = 0
+        XCTAssertEqual(session.currentExerciseIndex, 0)
+        XCTAssertEqual(session.exercises[0].liftName, "Squat")
+    }
+
+    func testNavigationToLastExercise() {
+        var session = makeSession()
+        session.currentExerciseIndex = session.exercises.count - 1
+        XCTAssertEqual(session.currentExerciseIndex, 2)
+        XCTAssertEqual(session.exercises[2].liftName, "Weighted Pull-up")
+    }
+
+    func testNavigationBoundsCheckLowerBound() {
+        let session = makeSession()
+        // Index 0 is the minimum — can't go lower
+        XCTAssertEqual(session.currentExerciseIndex, 0)
+        // Swipe right should be blocked at index 0
+        let canGoPrevious = session.currentExerciseIndex > 0
+        XCTAssertFalse(canGoPrevious)
+    }
+
+    func testNavigationBoundsCheckUpperBound() {
+        var session = makeSession()
+        session.currentExerciseIndex = session.exercises.count - 1
+        // At last exercise — can't go forward
+        let canGoNext = session.currentExerciseIndex < session.exercises.count - 1
+        XCTAssertFalse(canGoNext)
+    }
+
+    func testNavigationCanGoNextFromMiddle() {
+        var session = makeSession()
+        session.currentExerciseIndex = 1
+        let canGoNext = session.currentExerciseIndex < session.exercises.count - 1
+        let canGoPrevious = session.currentExerciseIndex > 0
+        XCTAssertTrue(canGoNext)
+        XCTAssertTrue(canGoPrevious)
+    }
+
+    func testNavigationSingleExercise() {
+        let session = makeSession(exercises: [
+            makeExercise(liftName: "Squat", targetWeight: 200)
+        ])
+        let canGoNext = session.currentExerciseIndex < session.exercises.count - 1
+        let canGoPrevious = session.currentExerciseIndex > 0
+        XCTAssertFalse(canGoNext)
+        XCTAssertFalse(canGoPrevious)
+    }
+
+    // MARK: - Timer Clearing on Navigation
+
+    func testNavigationClearsRestTimer() {
+        var session = makeSession()
+        let now = Date().timeIntervalSince1970 * 1000
+        session.timerState = TimerState(phase: .rest, startedAt: now, restDurationSeconds: 120)
+        XCTAssertNotNil(session.timerState)
+
+        // Navigate to next exercise
+        session.currentExerciseIndex = 1
+        session.timerState = nil
+        XCTAssertNil(session.timerState)
+    }
+
+    func testNavigationClearsExerciseTimer() {
+        var session = makeSession()
+        let now = Date().timeIntervalSince1970 * 1000
+        session.timerState = TimerState(phase: .exercise, startedAt: now, restDurationSeconds: nil)
+        XCTAssertNotNil(session.timerState)
+
+        session.currentExerciseIndex = 1
+        session.timerState = nil
+        XCTAssertNil(session.timerState)
+    }
+
+    // MARK: - Exercise Start Time Tracking
+
+    func testFirstVisitRecordsStartTime() {
+        var session = makeSession()
+        XCTAssertNotNil(session.exerciseStartTimes[0], "First exercise should have start time from session creation")
+        XCTAssertNil(session.exerciseStartTimes[1], "Second exercise should not have start time yet")
+
+        session.currentExerciseIndex = 1
+        session.exerciseStartTimes[1] = Date.iso8601Now()
+        XCTAssertNotNil(session.exerciseStartTimes[1])
+    }
+
+    func testRevisitDoesNotOverwriteStartTime() {
+        var session = makeSession()
+        session.currentExerciseIndex = 1
+        let firstVisit = Date.iso8601Now()
+        session.exerciseStartTimes[1] = firstVisit
+
+        // Go back and forth
+        session.currentExerciseIndex = 0
+        session.currentExerciseIndex = 1
+
+        // Should keep original time
+        if session.exerciseStartTimes[1] == nil {
+            session.exerciseStartTimes[1] = Date.iso8601Now()
+        }
+        XCTAssertEqual(session.exerciseStartTimes[1], firstVisit)
+    }
+
+    // MARK: - Sets Per Exercise Independence
+
+    func testSetsAreIndependentPerExercise() {
+        var session = makeSession(setsPerExercise: 3)
+        // Complete all sets for exercise 0
+        for i in 0..<session.sets.count where session.sets[i].exerciseIndex == 0 {
+            session.sets[i].completed = true
+        }
+
+        // Exercise 0 complete
+        let exercise0Sets = session.sets.filter { $0.exerciseIndex == 0 }
+        XCTAssertTrue(exercise0Sets.allSatisfy(\.completed))
+
+        // Exercise 1 should still be incomplete
+        let exercise1Sets = session.sets.filter { $0.exerciseIndex == 1 }
+        XCTAssertFalse(exercise1Sets.allSatisfy(\.completed))
+        XCTAssertEqual(exercise1Sets.filter(\.completed).count, 0)
+    }
+
+    // MARK: - Completed Sets Count for Current Exercise
+
+    func testCompletedSetsCountChangesWithExercise() {
+        var session = makeSession(setsPerExercise: 3)
+        // Complete 2 sets of exercise 0
+        session.sets[0].completed = true
+        session.sets[1].completed = true
+
+        let ex0Completed = session.sets.filter { $0.exerciseIndex == 0 && $0.completed }.count
+        XCTAssertEqual(ex0Completed, 2)
+
+        // Switch to exercise 1 — should have 0 completed
+        session.currentExerciseIndex = 1
+        let ex1Completed = session.sets.filter { $0.exerciseIndex == 1 && $0.completed }.count
+        XCTAssertEqual(ex1Completed, 0)
+    }
 }

@@ -44,6 +44,7 @@ struct RootView: View {
     @State private var feedbackService = FeedbackService()
     @State private var castService: CastService?
     @State private var castAdapter: GCKCastSessionAdapter?
+    @State private var stravaService: StravaService?
     @State private var selectedTab = 0
 
     var body: some View {
@@ -77,7 +78,8 @@ struct RootView: View {
                     appState: appState,
                     dataStore: dataStore,
                     feedback: feedbackService,
-                    castService: castService
+                    castService: castService,
+                    stravaService: stravaService
                 ))
                 .environment(appState)
             }
@@ -125,7 +127,7 @@ struct RootView: View {
                 onNavigateToProfile: { selectedTab = 3 },
                 onStartWorkout: { exercises, week, program in
                     if let dataStore {
-                        let sessionVM = SessionViewModel(appState: appState, dataStore: dataStore, feedback: feedbackService, castService: castService)
+                        let sessionVM = SessionViewModel(appState: appState, dataStore: dataStore, feedback: feedbackService, castService: castService, stravaService: stravaService)
                         sessionVM.startSession(exercises: exercises, week: week, program: program)
                     }
                 }
@@ -135,7 +137,7 @@ struct RootView: View {
                 ProgramView(dataStore: dataStore)
             }
         case 2:
-            HistoryView()
+            HistoryView(stravaService: stravaService)
         case 3:
             if let dataStore, let authService, let syncCoordinator {
                 ProfileView(vm: ProfileViewModel(
@@ -143,7 +145,7 @@ struct RootView: View {
                     dataStore: dataStore,
                     authService: authService,
                     syncCoordinator: syncCoordinator
-                ))
+                ), stravaService: stravaService)
             }
         default:
             EmptyView()
@@ -194,6 +196,12 @@ struct RootView: View {
         adapter.start()
         self.castService = cast
         self.castAdapter = adapter
+
+        // Strava setup
+        let stravaTokenManager = StravaTokenManager()
+        let strava = StravaService(stravaState: appState.stravaState, tokenManager: stravaTokenManager)
+        await strava.restoreConnection()
+        self.stravaService = strava
 
         // Initialize auth (check stored tokens, refresh)
         await auth.initAuth()

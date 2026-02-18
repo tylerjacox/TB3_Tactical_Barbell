@@ -4,7 +4,6 @@
 
 import Foundation
 import AuthenticationServices
-import CryptoKit
 import AWSCognitoIdentityProvider
 
 enum AuthError: LocalizedError {
@@ -167,8 +166,8 @@ final class AuthService: NSObject {
         authState.isLoading = true
         authState.error = nil
 
-        let verifier = generateCodeVerifier()
-        let challenge = generateCodeChallenge(verifier: verifier)
+        let verifier = PKCEHelper.generateCodeVerifier()
+        let challenge = PKCEHelper.generateCodeChallenge(verifier: verifier)
         self.pkceVerifier = verifier
 
         var components = URLComponents(string: "\(cognitoDomain)/oauth2/authorize")!
@@ -359,28 +358,6 @@ final class AuthService: NSObject {
         authState.userId = nil
         authState.email = nil
         authState.error = nil
-    }
-
-    // MARK: - PKCE Helpers
-
-    private func generateCodeVerifier() -> String {
-        var bytes = [UInt8](repeating: 0, count: 32)
-        _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
-        return Data(bytes).base64EncodedString()
-            .replacingOccurrences(of: "+", with: "-")
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: "=", with: "")
-            .prefix(43)
-            .description
-    }
-
-    private func generateCodeChallenge(verifier: String) -> String {
-        let data = Data(verifier.utf8)
-        let hash = SHA256.hash(data: data)
-        return Data(hash).base64EncodedString()
-            .replacingOccurrences(of: "+", with: "-")
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: "=", with: "")
     }
 
     // MARK: - Error Mapping

@@ -6,6 +6,11 @@ import AVFoundation
 struct ProfileView: View {
     @Environment(AppState.self) var appState
     @Bindable var vm: ProfileViewModel
+    var stravaService: StravaService?
+    @State private var showStravaConsent = false
+    @State private var showStravaDisconnectConfirm = false
+    @State private var shouldConnectStrava = false
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -17,6 +22,9 @@ struct ProfileView: View {
 
                     // Settings
                     settingsSection
+
+                    // Integrations
+                    integrationsSection
 
                     // Plate Inventory
                     plateInventorySection
@@ -41,6 +49,33 @@ struct ProfileView: View {
                 isDanger: true,
                 onConfirm: { vm.deleteAllData() }
             ))
+            .confirmDialog(isPresented: $showStravaDisconnectConfirm, config: ConfirmDialogConfig(
+                title: "Disconnect Strava?",
+                message: "This will remove the connection and stop sharing workouts to Strava.",
+                confirmLabel: "Disconnect",
+                isDanger: true,
+                onConfirm: { Task { await stravaService?.disconnect() } }
+            ))
+            .sheet(isPresented: $showStravaConsent, onDismiss: {
+                if shouldConnectStrava {
+                    shouldConnectStrava = false
+                    Task {
+                        try? await stravaService?.connect()
+                    }
+                }
+            }) {
+                StravaConsentView(
+                    onConnect: {
+                        shouldConnectStrava = true
+                        showStravaConsent = false
+                    },
+                    onCancel: {
+                        showStravaConsent = false
+                    }
+                )
+                .presentationDetents([.medium])
+                .presentationBackground(Color.tb3Background)
+            }
         }
     }
 
@@ -219,6 +254,50 @@ struct ProfileView: View {
                     onSelect: { vm.updateVoiceName($0) },
                     onPreview: { vm.previewVoice($0) }
                 )
+            }
+        }
+    }
+
+    // MARK: - Integrations
+
+    private var integrationsSection: some View {
+        Section("Integrations") {
+            HStack {
+                Image(systemName: "figure.run")
+                    .foregroundStyle(Color(hex: 0xFC4C02))
+                    .frame(width: 20)
+                Text("Strava")
+
+                Spacer()
+
+                if appState.stravaState.isLoading {
+                    ProgressView()
+                        .controlSize(.small)
+                } else if appState.stravaState.isConnected {
+                    Text(appState.stravaState.athleteName ?? "Connected")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.tb3Success)
+                } else {
+                    Button("Connect") {
+                        showStravaConsent = true
+                    }
+                    .font(.subheadline.bold())
+                    .foregroundStyle(Color(hex: 0xFC4C02))
+                }
+            }
+
+            if appState.stravaState.isConnected {
+                Toggle("Auto-Share Workouts", isOn: Binding(
+                    get: { appState.stravaState.autoShare },
+                    set: { newValue in
+                        appState.stravaState.autoShare = newValue
+                        UserDefaults.standard.set(newValue, forKey: "tb3_strava_auto_share")
+                    }
+                ))
+
+                Button("Disconnect", role: .destructive) {
+                    showStravaDisconnectConfirm = true
+                }
             }
         }
     }
