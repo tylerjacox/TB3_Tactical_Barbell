@@ -107,6 +107,8 @@ struct RootView: View {
                 if appState.profile.restTimerAlertsEnabled {
                     notificationService.cancelRestTimerAlert()
                 }
+                // Open session if user tapped rest timer notification
+                handleNotificationTap()
             case .background:
                 // Schedule rest timer notification if in rest phase
                 if appState.profile.restTimerAlertsEnabled,
@@ -129,9 +131,7 @@ struct RootView: View {
             handleIntentFlags()
         }
         .onReceive(NotificationCenter.default.publisher(for: .tb3NotificationTapped)) { _ in
-            if appState.activeSession != nil {
-                appState.isSessionPresented = true
-            }
+            handleNotificationTap()
         }
         .onChange(of: appState.profile.soundMode) { _, _ in configureFeedback() }
         .onChange(of: appState.profile.voiceAnnouncements) { _, _ in configureFeedback() }
@@ -305,6 +305,17 @@ struct RootView: View {
             sessionNumber: program.currentSession,
             exercises: exerciseNames
         )
+    }
+
+    // MARK: - Notification Tap Handling
+
+    private func handleNotificationTap() {
+        if UserDefaults.standard.bool(forKey: "tb3_notification_open_session") {
+            UserDefaults.standard.removeObject(forKey: "tb3_notification_open_session")
+            if appState.activeSession != nil {
+                appState.isSessionPresented = true
+            }
+        }
     }
 
     // MARK: - App Intent Flag Handling

@@ -26,32 +26,33 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
 // MARK: - Notification Handling
 
-extension AppDelegate: UNUserNotificationCenterDelegate {
+extension AppDelegate: @preconcurrency UNUserNotificationCenterDelegate {
     /// Present milestone notifications as banners even when app is in foreground.
-    nonisolated func userNotificationCenter(
+    func userNotificationCenter(
         _ center: UNUserNotificationCenter,
-        willPresent notification: UNNotification
-    ) async -> UNNotificationPresentationOptions {
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
         let id = notification.request.identifier
-        // Show milestone notifications in foreground
         if id.hasPrefix("tb3_milestone") {
-            return [.banner, .sound]
+            completionHandler([.banner, .sound])
+        } else {
+            completionHandler([])
         }
-        // Suppress rest timer alerts in foreground (user is already back)
-        return []
     }
 
-    /// Handle notification tap — resume workout session.
-    nonisolated func userNotificationCenter(
+    /// Handle notification tap — set flag and post notification for RootView.
+    func userNotificationCenter(
         _ center: UNUserNotificationCenter,
-        didReceive response: UNNotificationResponse
-    ) async {
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
         let id = response.notification.request.identifier
         if id == "tb3_rest_timer_complete" {
-            await MainActor.run {
-                NotificationCenter.default.post(name: .tb3NotificationTapped, object: nil)
-            }
+            UserDefaults.standard.set(true, forKey: "tb3_notification_open_session")
+            NotificationCenter.default.post(name: .tb3NotificationTapped, object: nil)
         }
+        completionHandler()
     }
 }
 
