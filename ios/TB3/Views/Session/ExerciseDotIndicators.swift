@@ -17,10 +17,12 @@ struct ExerciseDotIndicators: View {
                 Circle()
                     .fill(dotColor(isCurrent: isCurrent, isDone: isDone))
                     .frame(width: isCurrent ? 10 : 8, height: isCurrent ? 10 : 8)
+                    .animation(.easeInOut(duration: 0.2), value: currentIndex)
                     .onTapGesture {
                         onSelect?(index)
                     }
                     .accessibilityLabel("Exercise \(index + 1) of \(exercises.count), \(exercises[index].liftName)\(isDone ? ", complete" : "")")
+                    .accessibilityHint("Double tap to switch to this exercise")
             }
         }
     }

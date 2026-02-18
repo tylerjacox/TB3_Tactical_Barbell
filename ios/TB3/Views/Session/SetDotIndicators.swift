@@ -11,7 +11,11 @@ struct SetDotIndicators: View {
                 Circle()
                     .fill(set.completed ? Color.tb3Accent : Color.tb3Border)
                     .frame(width: 16, height: 16)
+                    .scaleEffect(set.completed ? 1.0 : 0.85)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: set.completed)
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Set progress, \(sets.filter(\.completed).count) of \(sets.count) sets complete")
     }
 }

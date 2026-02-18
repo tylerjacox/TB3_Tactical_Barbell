@@ -87,6 +87,7 @@ private enum NumberPadKey {
 
 private class NumberPadView: UIView {
     var onKeyTap: ((NumberPadKey) -> Void)?
+    private let hapticGenerator = UIImpactFeedbackGenerator(style: .light)
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -181,20 +182,24 @@ private class NumberPadView: UIView {
     }
 
     @objc private func numberTapped(_ sender: UIButton) {
+        hapticGenerator.impactOccurred()
         onKeyTap?(.number(sender.tag))
     }
 
     @objc private func deleteTapped() {
+        hapticGenerator.impactOccurred()
         onKeyTap?(.delete)
     }
 
     @objc private func deleteLongPress(_ gesture: UILongPressGestureRecognizer) {
         if gesture.state == .began {
+            hapticGenerator.impactOccurred()
             onKeyTap?(.delete)
         }
     }
 
     @objc private func doneTapped() {
+        hapticGenerator.impactOccurred()
         onKeyTap?(.done)
     }
 }

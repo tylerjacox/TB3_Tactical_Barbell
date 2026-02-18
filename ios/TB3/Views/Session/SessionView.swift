@@ -78,6 +78,7 @@ struct SessionView: View {
                         isOvertime: vm.isOvertime
                     )
                     .opacity(vm.timerPhase != nil ? 1 : 0)
+                    .accessibilityLabel(timerAccessibilityLabel)
                     .padding(.bottom, 12)
 
                     // Exercise pager dots
@@ -151,6 +152,7 @@ struct SessionView: View {
                 Image(systemName: "ellipsis.circle")
                     .font(.title3)
             }
+            .accessibilityLabel("Workout options")
         }
         .padding()
     }
@@ -200,10 +202,12 @@ struct SessionView: View {
                             .fontWeight(.bold)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
+                            .foregroundStyle(.white)
+                            .background(Color.beginSetGreen)
+                            .cornerRadius(12)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.beginSetGreen)
-                    .controlSize(.large)
+                    .buttonStyle(.tb3Press)
+                    .accessibilityHint("Double tap to advance to the next exercise")
                 } else if vm.allExercisesComplete {
                     Button {
                         vm.endWorkoutEarly()
@@ -212,10 +216,12 @@ struct SessionView: View {
                             .fontWeight(.bold)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
+                            .foregroundStyle(.white)
+                            .background(Color.beginSetGreen)
+                            .cornerRadius(12)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.beginSetGreen)
-                    .controlSize(.large)
+                    .buttonStyle(.tb3Press)
+                    .accessibilityHint("Double tap to finish and save your workout")
                 } else {
                     Button {} label: {
                         Text("All Sets Done")
@@ -236,10 +242,13 @@ struct SessionView: View {
                         .fontWeight(.bold)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
+                        .foregroundStyle(.white)
+                        .background(Color.beginSetGreen)
+                        .cornerRadius(12)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.beginSetGreen)
-                .controlSize(.large)
+                .buttonStyle(.tb3Press)
+                .accessibilityLabel("Begin Set \(vm.nextSetNumber)")
+                .accessibilityHint("Double tap to start your set")
             } else {
                 // Exercise phase or no timer: "Complete Set X / Y"
                 Button {
@@ -249,10 +258,13 @@ struct SessionView: View {
                         .fontWeight(.bold)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
+                        .foregroundStyle(.white)
+                        .background(Color.completeSetOrange)
+                        .cornerRadius(12)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.completeSetOrange)
-                .controlSize(.large)
+                .buttonStyle(.tb3Press)
+                .accessibilityLabel("Complete Set \(vm.nextSetNumber) of \(vm.currentSets.count)")
+                .accessibilityHint("Double tap to mark this set as complete")
             }
         }
     }
@@ -260,22 +272,45 @@ struct SessionView: View {
     // MARK: - Undo Toast
 
     private var undoToastOverlay: some View {
-        HStack {
-            Text("Set \(vm.undoSetNumber ?? 0) complete")
-                .font(.subheadline)
-            Spacer()
-            Button("Undo") {
-                vm.handleUndo()
+        Group {
+            if vm.undoSetNumber != nil {
+                HStack {
+                    Text("Set \(vm.undoSetNumber ?? 0) complete")
+                        .font(.subheadline)
+                    Spacer()
+                    Button("Undo") {
+                        vm.handleUndo()
+                    }
+                    .font(.subheadline.bold())
+                    .accessibilityHint("Double tap to undo this set")
+                }
+                .padding()
+                .background(Color.tb3Card)
+                .cornerRadius(12)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.tb3Border, lineWidth: 1))
+                .padding(.horizontal)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Set \(vm.undoSetNumber ?? 0) complete. Undo available.")
             }
-            .font(.subheadline.bold())
         }
-        .padding()
-        .background(Color.tb3Card)
-        .cornerRadius(12)
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.tb3Border, lineWidth: 1))
-        .padding(.horizontal)
-        .opacity(vm.undoSetNumber != nil ? 1 : 0)
-        .allowsHitTesting(vm.undoSetNumber != nil)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: vm.undoSetNumber != nil)
+    }
+
+    // MARK: - Accessibility
+
+    private var timerAccessibilityLabel: String {
+        guard let phase = vm.timerPhase else { return "" }
+        let elapsed = vm.timerElapsed
+        let minutes = Int(elapsed) / 60
+        let seconds = Int(elapsed) % 60
+        let timeStr = minutes > 0 ? "\(minutes) minutes \(seconds) seconds" : "\(seconds) seconds"
+        switch phase {
+        case .rest:
+            return vm.isOvertime ? "Rest timer, overtime, \(timeStr) elapsed" : "Rest timer, \(timeStr) elapsed"
+        case .exercise:
+            return "Exercise timer, \(timeStr) elapsed"
+        }
     }
 
     // MARK: - Swipe Gesture
@@ -304,6 +339,7 @@ struct SessionView: View {
                 if translation < -threshold {
                     // Swipe left → next exercise
                     if let session = vm.session, session.currentExerciseIndex < session.exercises.count - 1 {
+                        vm.feedback.swipeComplete()
                         withAnimation(.easeOut(duration: 0.2)) {
                             dragOffset = -UIScreen.main.bounds.width
                         }
@@ -319,6 +355,7 @@ struct SessionView: View {
                 } else if translation > threshold {
                     // Swipe right → previous exercise
                     if let session = vm.session, session.currentExerciseIndex > 0 {
+                        vm.feedback.swipeComplete()
                         withAnimation(.easeOut(duration: 0.2)) {
                             dragOffset = UIScreen.main.bounds.width
                         }

@@ -127,6 +127,7 @@ struct RootView: View {
             tabContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipped()
+                .animation(.easeInOut(duration: 0.15), value: selectedTab)
 
             CustomTabBar(selectedTab: $selectedTab)
         }

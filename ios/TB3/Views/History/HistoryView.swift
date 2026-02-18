@@ -99,6 +99,7 @@ struct HistoryView: View {
             Image(systemName: icon)
                 .font(.system(size: 48))
                 .foregroundStyle(Color.tb3Muted)
+                .symbolEffect(.pulse, options: .repeating.speed(0.5))
             Text(message)
                 .font(.subheadline)
                 .foregroundStyle(Color.tb3Muted)

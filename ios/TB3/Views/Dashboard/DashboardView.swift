@@ -37,6 +37,7 @@ struct DashboardView: View {
             Image(systemName: "dumbbell")
                 .font(.system(size: 60))
                 .foregroundStyle(Color.tb3Muted)
+                .symbolEffect(.pulse, options: .repeating.speed(0.5))
 
             Text("No Active Program")
                 .font(.title2.bold())
@@ -60,6 +61,7 @@ struct DashboardView: View {
             Image(systemName: "trophy.fill")
                 .font(.system(size: 60))
                 .foregroundStyle(Color.tb3Accent)
+                .symbolEffect(.pulse, options: .repeating.speed(0.5))
 
             Text("Program Complete!")
                 .font(.title2.bold())
@@ -101,6 +103,7 @@ struct DashboardView: View {
                     // Progress bar
                     ProgressView(value: progressPercent)
                         .tint(Color.tb3Accent)
+                        .accessibilityLabel("Program progress, \(Int(progressPercent * 100))% complete")
                 }
             }
 
@@ -133,6 +136,7 @@ struct DashboardView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
+                .accessibilityHint("Double tap to begin workout session")
             }
 
         }

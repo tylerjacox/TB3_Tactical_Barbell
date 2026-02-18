@@ -1,6 +1,7 @@
 // TB3 iOS — Weight (menu picker) + Reps (stepper) input component
 
 import SwiftUI
+import UIKit
 
 struct WeightRepsPicker: View {
     @Binding var weightText: String
@@ -50,6 +51,7 @@ struct WeightRepsPicker: View {
                     .cornerRadius(10)
                     .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.tb3Border, lineWidth: 1))
                 }
+                .accessibilityLabel("Weight, \(weightValue > 0 ? "\(formatWeight(weightValue)) pounds" : "not set")")
 
                 Text("lb")
                     .font(.caption)
@@ -59,6 +61,7 @@ struct WeightRepsPicker: View {
             Text("\u{00D7}")
                 .font(.title3)
                 .foregroundStyle(Color.tb3Muted)
+                .accessibilityHidden(true)
 
             // Reps: stepper buttons
             VStack(spacing: 4) {
@@ -70,8 +73,10 @@ struct WeightRepsPicker: View {
                     Button {
                         if repsValue > 1 {
                             repsValue -= 1
+                            hapticTick()
                         } else if repsValue == 0 {
                             repsValue = 1
+                            hapticTick()
                         }
                     } label: {
                         Text("\u{2212}")
@@ -79,6 +84,7 @@ struct WeightRepsPicker: View {
                             .foregroundStyle(repsValue > 1 ? Color.tb3Accent : Color.tb3Disabled)
                             .frame(width: 44, height: 48)
                     }
+                    .accessibilityLabel("Decrease reps")
 
                     Text(repsValue > 0 ? "\(repsValue)" : "—")
                         .font(.system(size: 22, weight: .medium).monospacedDigit())
@@ -97,10 +103,12 @@ struct WeightRepsPicker: View {
                                 .frame(width: 1),
                             alignment: .trailing
                         )
+                        .accessibilityLabel("\(repsValue > 0 ? "\(repsValue)" : "no") reps")
 
                     Button {
                         if repsValue < 20 {
                             repsValue = max(1, repsValue + 1)
+                            hapticTick()
                         }
                     } label: {
                         Text("+")
@@ -108,6 +116,7 @@ struct WeightRepsPicker: View {
                             .foregroundStyle(repsValue < 20 ? Color.tb3Accent : Color.tb3Disabled)
                             .frame(width: 44, height: 48)
                     }
+                    .accessibilityLabel("Increase reps")
                 }
                 .background(Color.tb3Card)
                 .cornerRadius(10)
@@ -137,5 +146,10 @@ struct WeightRepsPicker: View {
 
     private func formatWeight(_ w: Double) -> String {
         w.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int(w))" : String(format: "%.1f", w)
+    }
+
+    private func hapticTick() {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
     }
 }

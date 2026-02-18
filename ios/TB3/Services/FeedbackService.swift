@@ -128,6 +128,30 @@ final class FeedbackService {
         speechSynthesizer.speak(utterance)
     }
 
+    // MARK: - UI Interaction Feedback
+
+    /// General button tap — light haptic (for CTA buttons, navigation actions)
+    func buttonTap() {
+        vibrate(.light)
+    }
+
+    /// Tab bar selection changed — selection haptic
+    func tabSwitch() {
+        guard soundMode != "off" else { return }
+        let generator = UISelectionFeedbackGenerator()
+        generator.selectionChanged()
+    }
+
+    /// Stepper increment/decrement — light haptic (weight/reps picker)
+    func stepperTick() {
+        vibrate(.light)
+    }
+
+    /// Exercise swipe completed — light haptic
+    func swipeComplete() {
+        vibrate(.light)
+    }
+
     // MARK: - Feedback Events
 
     /// Set completed — light haptic + two-tone beep

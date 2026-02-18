@@ -11,6 +11,7 @@ struct ScreenHeader: View {
             Text(title)
                 .font(.system(size: 28, weight: .bold))
                 .tracking(-0.5)
+                .accessibilityAddTraits(.isHeader)
 
             Spacer()
 

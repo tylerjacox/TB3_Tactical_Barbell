@@ -27,7 +27,7 @@ final class SessionViewModel {
 
     private let appState: AppState
     private let dataStore: DataStore
-    private let feedback: FeedbackService
+    let feedback: FeedbackService
     private let castService: CastService?
     private let stravaService: StravaService?
     private let liveActivityService: LiveActivityService?

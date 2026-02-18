@@ -1,15 +1,16 @@
 // TB3 iOS — Custom Tab Bar (opaque, no iOS 26 floating glass)
 
 import SwiftUI
+import UIKit
 
 struct CustomTabBar: View {
     @Binding var selectedTab: Int
 
-    private let tabs: [(icon: String, label: String, tag: Int)] = [
-        ("house", "Dashboard", 0),
-        ("calendar", "Program", 1),
-        ("clock", "History", 2),
-        ("person", "Profile", 3),
+    private let tabs: [(icon: String, iconFilled: String, label: String, tag: Int)] = [
+        ("house", "house.fill", "Dashboard", 0),
+        ("calendar", "calendar", "Program", 1),
+        ("clock", "clock.fill", "History", 2),
+        ("person", "person.fill", "Profile", 3),
     ]
 
     var body: some View {
@@ -19,11 +20,17 @@ struct CustomTabBar: View {
             HStack {
                 ForEach(tabs, id: \.tag) { tab in
                     Button {
-                        selectedTab = tab.tag
+                        if selectedTab != tab.tag {
+                            // Haptic feedback on tab change
+                            let generator = UISelectionFeedbackGenerator()
+                            generator.selectionChanged()
+                            selectedTab = tab.tag
+                        }
                     } label: {
                         VStack(spacing: 4) {
-                            Image(systemName: tab.icon)
+                            Image(systemName: selectedTab == tab.tag ? tab.iconFilled : tab.icon)
                                 .font(.system(size: 20))
+                                .contentTransition(.symbolEffect(.replace))
                             Text(tab.label)
                                 .font(.caption2)
                         }
@@ -32,11 +39,13 @@ struct CustomTabBar: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(tab.label)
+                    .accessibilityAddTraits(selectedTab == tab.tag ? .isSelected : [])
                 }
             }
             .padding(.top, 8)
             .padding(.bottom, 4)
             .padding(.horizontal, 8)
+            .animation(.easeInOut(duration: 0.15), value: selectedTab)
         }
         .background(Color.tb3Card)
         .padding(.bottom, safeAreaBottom)
