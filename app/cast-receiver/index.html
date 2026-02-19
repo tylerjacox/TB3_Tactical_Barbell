@@ -447,6 +447,53 @@
     margin-top: 8px;
   }
 
+  /* --- Now Playing (Spotify) --- */
+  .now-playing {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    visibility: hidden;
+  }
+
+  .now-playing.active {
+    visibility: visible;
+  }
+
+  .now-playing-art {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    object-fit: cover;
+    background-color: var(--card);
+    flex-shrink: 0;
+  }
+
+  .now-playing-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .now-playing-track {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
+  }
+
+  .now-playing-artist {
+    font-size: 15px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
+  }
+
   .hidden { display: none !important; }
 </style>
 </head>
@@ -495,6 +542,13 @@
   </div>
 
   <div class="footer">
+    <div class="now-playing" id="nowPlaying">
+      <img class="now-playing-art" id="nowPlayingArt" style="display:none" alt="">
+      <div class="now-playing-info">
+        <div class="now-playing-track" id="nowPlayingTrack"></div>
+        <div class="now-playing-artist" id="nowPlayingArtist"></div>
+      </div>
+    </div>
     <div class="exercise-progress" id="exerciseProgress"></div>
     <div class="session-elapsed">
       <div class="session-elapsed-label">Session</div>

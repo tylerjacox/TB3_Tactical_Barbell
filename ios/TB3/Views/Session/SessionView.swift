@@ -81,6 +81,18 @@ struct SessionView: View {
                     .accessibilityLabel(timerAccessibilityLabel)
                     .padding(.bottom, 12)
 
+                    // Now Playing (Spotify)
+                    if appState.spotifyState.nowPlaying != nil {
+                        NowPlayingView(
+                            nowPlaying: appState.spotifyState.nowPlaying,
+                            onPrevious: { vm.skipPrevious() },
+                            onPlayPause: { vm.togglePlayPause() },
+                            onNext: { vm.skipNext() },
+                            onToggleLike: { vm.toggleLike() }
+                        )
+                        .padding(.bottom, 8)
+                    }
+
                     // Exercise pager dots
                     if let session = vm.session {
                         ExerciseDotIndicators(

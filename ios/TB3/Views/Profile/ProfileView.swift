@@ -7,10 +7,14 @@ struct ProfileView: View {
     @Environment(AppState.self) var appState
     @Bindable var vm: ProfileViewModel
     var stravaService: StravaService?
+    var spotifyService: SpotifyService?
     var notificationService: NotificationService?
     @State private var showStravaConsent = false
     @State private var showStravaDisconnectConfirm = false
     @State private var shouldConnectStrava = false
+    @State private var showSpotifyConsent = false
+    @State private var showSpotifyDisconnectConfirm = false
+    @State private var shouldConnectSpotify = false
 
     var body: some View {
         NavigationStack {
@@ -75,6 +79,33 @@ struct ProfileView: View {
                     },
                     onCancel: {
                         showStravaConsent = false
+                    }
+                )
+                .presentationDetents([.medium])
+                .presentationBackground(Color.tb3Background)
+            }
+            .confirmDialog(isPresented: $showSpotifyDisconnectConfirm, config: ConfirmDialogConfig(
+                title: "Disconnect Spotify?",
+                message: "This will remove the connection. You can reconnect at any time.",
+                confirmLabel: "Disconnect",
+                isDanger: true,
+                onConfirm: { Task { await spotifyService?.disconnect() } }
+            ))
+            .sheet(isPresented: $showSpotifyConsent, onDismiss: {
+                if shouldConnectSpotify {
+                    shouldConnectSpotify = false
+                    Task {
+                        try? await spotifyService?.connect()
+                    }
+                }
+            }) {
+                SpotifyConsentView(
+                    onConnect: {
+                        shouldConnectSpotify = true
+                        showSpotifyConsent = false
+                    },
+                    onCancel: {
+                        showSpotifyConsent = false
                     }
                 )
                 .presentationDetents([.medium])
@@ -339,6 +370,53 @@ struct ProfileView: View {
 
                 Button("Disconnect", role: .destructive) {
                     showStravaDisconnectConfirm = true
+                }
+            }
+
+            HStack {
+                Image(systemName: "music.note")
+                    .foregroundStyle(Color(hex: 0x1DB954))
+                    .frame(width: 20)
+                Text("Spotify")
+
+                Spacer()
+
+                if appState.spotifyState.isLoading {
+                    ProgressView()
+                        .controlSize(.small)
+                } else if appState.spotifyState.isConnected {
+                    Text(appState.spotifyState.userName ?? "Connected")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.tb3Success)
+                } else {
+                    Button("Connect") {
+                        showSpotifyConsent = true
+                    }
+                    .font(.subheadline.bold())
+                    .foregroundStyle(Color(hex: 0x1DB954))
+                }
+            }
+
+            if appState.spotifyState.needsReauth {
+                Button {
+                    Task {
+                        await spotifyService?.disconnect()
+                        showSpotifyConsent = true
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.yellow)
+                        Text("Reconnect to enable Liked Songs")
+                            .font(.subheadline)
+                    }
+                }
+                .foregroundStyle(Color(hex: 0x1DB954))
+            }
+
+            if appState.spotifyState.isConnected {
+                Button("Disconnect", role: .destructive) {
+                    showSpotifyDisconnectConfirm = true
                 }
             }
         }

@@ -21,6 +21,9 @@ final class AppState {
     // Strava
     var stravaState = StravaState()
 
+    // Spotify
+    var spotifyState = SpotifyState()
+
     // Data — populated from SwiftData on init
     var profile: SyncProfile = SyncProfile(
         maxType: "training", roundingIncrement: 2.5, barbellWeight: 45,

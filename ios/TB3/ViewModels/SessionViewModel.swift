@@ -30,15 +30,17 @@ final class SessionViewModel {
     let feedback: FeedbackService
     private let castService: CastService?
     private let stravaService: StravaService?
+    private let spotifyService: SpotifyService?
     private let liveActivityService: LiveActivityService?
     private let notificationService: NotificationService?
 
-    init(appState: AppState, dataStore: DataStore, feedback: FeedbackService, castService: CastService? = nil, stravaService: StravaService? = nil, liveActivityService: LiveActivityService? = nil, notificationService: NotificationService? = nil) {
+    init(appState: AppState, dataStore: DataStore, feedback: FeedbackService, castService: CastService? = nil, stravaService: StravaService? = nil, spotifyService: SpotifyService? = nil, liveActivityService: LiveActivityService? = nil, notificationService: NotificationService? = nil) {
         self.appState = appState
         self.dataStore = dataStore
         self.feedback = feedback
         self.castService = castService
         self.stravaService = stravaService
+        self.spotifyService = spotifyService
         self.liveActivityService = liveActivityService
         self.notificationService = notificationService
     }
@@ -279,7 +281,9 @@ final class SessionViewModel {
         if session.exerciseStartTimes[index] == nil {
             session.exerciseStartTimes[index] = Date.iso8601Now()
         }
-        session.timerState = nil
+
+        // Preserve rest timer across exercise navigation — it's a session-level
+        // countdown, not exercise-specific. Only reset voice/milestone tracking.
         lastAnnouncedSecond = nil
         restCompleteFired = false
         lastPushedOvertime = false
@@ -349,6 +353,7 @@ final class SessionViewModel {
         appState.isSessionPresented = true
         castService?.sendSessionStateImmediate(appState.activeSession)
         liveActivityService?.startActivity(session: session)
+        spotifyService?.startPolling()
     }
 
     // MARK: - Complete Session
@@ -479,6 +484,9 @@ final class SessionViewModel {
             Task { await stravaService?.shareActivity(session: log) }
         }
 
+        // Stop Spotify polling
+        spotifyService?.stopPolling()
+
         // End Live Activity before clearing session
         liveActivityService?.endActivity()
 
@@ -506,6 +514,24 @@ final class SessionViewModel {
         session.save()
         sendCastUpdate()
         sendLiveActivityUpdate()
+    }
+
+    // MARK: - Spotify Controls
+
+    func skipNext() {
+        Task { await spotifyService?.nextTrack() }
+    }
+
+    func skipPrevious() {
+        Task { await spotifyService?.previousTrack() }
+    }
+
+    func togglePlayPause() {
+        Task { await spotifyService?.togglePlayPause() }
+    }
+
+    func toggleLike() {
+        Task { await spotifyService?.toggleLike() }
     }
 
     // MARK: - Rest Duration

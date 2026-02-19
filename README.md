@@ -1,6 +1,6 @@
 # TB3 — Tactical Barbell Companion
 
-A dual-platform strength training system built around the Tactical Barbell methodology. Native iOS app + installable PWA, backed by a shared AWS serverless backend with cross-device sync, Chromecast support, and Strava integration.
+A dual-platform strength training system built around the Tactical Barbell methodology. Native iOS app + installable PWA, backed by a shared AWS serverless backend with cross-device sync, Chromecast support, Strava integration, and Spotify playback controls.
 
 <p align="center">
   <img src="docs/ios-dashboard.png" alt="Dashboard with plate loading" width="200">
@@ -14,10 +14,11 @@ A dual-platform strength training system built around the Tactical Barbell metho
 | | iOS App | Web PWA |
 |---|---|---|
 | **Framework** | SwiftUI + SwiftData | Preact 10 + Signals |
-| **Source** | 80+ Swift files | 67 TypeScript files |
+| **Source** | 85+ Swift files | 67 TypeScript files |
 | **Storage** | SwiftData (SQLite, App Group shared) | IndexedDB |
 | **Cast** | Google Cast SDK (CocoaPods) | Google Cast SDK (lazy-loaded) |
 | **Strava** | OAuth2 via ASWebAuthenticationSession | — |
+| **Spotify** | Web API — now playing, playback controls, library | — |
 | **Siri** | App Intents (Start Workout, Log 1RM, What's Next) | — |
 | **Widgets** | WidgetKit (Next Workout, Lift PRs, Progress, Strength Trend) | — |
 | **Offline** | Native | Service worker + precache |
@@ -68,11 +69,23 @@ Per-lift line graphs with Day/Week/Month/Year/All time range filtering.
 
 ### Chromecast
 
-Cast your workout to any TV with a two-column layout optimized for 16:9 screens. Left side shows exercise, weight, and plate diagram; right side shows set progress, reps, and rest timer. Clock and session elapsed time update in real time.
+Cast your workout to any TV with a two-column layout optimized for 16:9 screens. Left side shows exercise, weight, and plate diagram; right side shows set progress, reps, and rest timer. Footer displays Spotify now-playing with album art, exercise progress bars, and session elapsed time. Clock updates in real time.
 
 <p align="center">
   <img src="docs/cast-screen.png" alt="Chromecast workout display with two-column layout" width="720">
 </p>
+
+### Spotify Integration
+
+See what's playing and control Spotify directly from the workout session screen. Album art, track name, and artist display on both the phone and Chromecast.
+
+- OAuth2 PKCE connect/disconnect from Profile → Integrations
+- Now-playing bar with album art, track name, and artist during workouts
+- Playback controls — previous, play/pause, next
+- Like/unlike tracks from the session screen (saved to your Spotify library)
+- Auto-polls every 5 seconds while a workout is active
+- Chromecast displays album art via base64 data URI (bypasses WebView CORS restrictions)
+- Client secret stays server-side via Lambda token proxy
 
 ### Strava Integration
 
@@ -130,6 +143,7 @@ See [ios/ROADMAP.md](ios/ROADMAP.md) for planned iOS-native enhancements includi
 | Widgets | WidgetKit (4 widgets, App Group shared container) |
 | Cast | Google Cast SDK (CocoaPods) |
 | Strava | ASWebAuthenticationSession + Keychain token storage |
+| Spotify | Web API + OAuth2 PKCE + Keychain token storage |
 | **Web** | |
 | UI | [Preact](https://preactjs.com/) 10 + [Preact Signals](https://preactjs.com/guide/v10/signals/) |
 | Build | [Vite](https://vitejs.dev/) 6 + TypeScript 5 |
@@ -169,8 +183,8 @@ TB3_Tactical_Barbell/
 │   │   ├── Intents/              # App Intents for Siri shortcuts
 │   │   ├── Models/               # SwiftData models + sync payloads
 │   │   ├── Networking/           # API client, auth, sync, token management
-│   │   ├── Services/             # Strava, Cast, feedback, validation, export/import, SharedContainer
-│   │   ├── State/                # AppState, AuthState, SyncState, CastState, StravaState
+│   │   ├── Services/             # Strava, Spotify, Cast, feedback, validation, export/import, SharedContainer
+│   │   ├── State/                # AppState, AuthState, SyncState, CastState, StravaState, SpotifyState
 │   │   ├── Templates/            # Template definitions + schedule generator
 │   │   ├── ViewModels/           # Auth, Onboarding, Profile, Session
 │   │   └── Views/                # Auth, Dashboard, History, Onboarding, Profile, Program, Session
@@ -185,7 +199,8 @@ TB3_Tactical_Barbell/
 │   │   └── tb3-api-stack.ts      # API Gateway, Lambda, DynamoDB
 │   ├── lambda/
 │   │   ├── sync.ts               # Push/pull sync endpoint
-│   │   └── strava-token.ts       # Strava OAuth token exchange proxy
+│   │   ├── strava-token.ts       # Strava OAuth token exchange proxy
+│   │   └── spotify-token.ts      # Spotify OAuth token exchange proxy
 │   ├── iam/                      # Deployer IAM user setup
 │   └── package.json
 ├── docs/                         # Screenshots for README
@@ -329,7 +344,7 @@ xcodebuild -workspace TB3.xcworkspace -scheme TB3 -sdk iphonesimulator \
 - **DynamoDB isolation** — All items keyed by `USER#{cognitoUserId}`, no cross-user access
 - **Import validation** — 12-step validation with prototype pollution defense
 - **S3 private** — `BLOCK_ALL` public access, CloudFront OAC only
-- **Strava client secret** — Server-side only via Lambda proxy, never in client code
+- **Strava/Spotify client secrets** — Server-side only via Lambda proxy, never in client code
 
 ## Environment Variables
 

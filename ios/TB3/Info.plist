@@ -34,6 +34,7 @@
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>strava</string>
+		<string>spotify</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>

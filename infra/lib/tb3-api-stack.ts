@@ -115,6 +115,35 @@ export class Tb3ApiStack extends cdk.Stack {
       integration: new apiIntegrations.HttpLambdaIntegration('StravaTokenIntegration', stravaTokenFunction),
     });
 
+    // Spotify token exchange proxy — keeps client_secret server-side
+    const spotifySecret = secretsmanager.Secret.fromSecretNameV2(
+      this, 'SpotifyOAuthSecret', 'tb3/spotify',
+    );
+
+    const spotifyTokenFunction = new lambdaNodejs.NodejsFunction(this, 'SpotifyTokenFunction', {
+      entry: path.join(__dirname, '../lambda/spotify-token.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      environment: {
+        SPOTIFY_SECRET_NAME: spotifySecret.secretName,
+      },
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 256,
+      bundling: {
+        minify: true,
+        sourceMap: true,
+        externalModules: ['@aws-sdk/*'],
+      },
+    });
+
+    spotifySecret.grantRead(spotifyTokenFunction);
+
+    httpApi.addRoutes({
+      path: '/spotify/token',
+      methods: [apigateway.HttpMethod.POST],
+      integration: new apiIntegrations.HttpLambdaIntegration('SpotifyTokenIntegration', spotifyTokenFunction),
+    });
+
     // Stack outputs
     new cdk.CfnOutput(this, 'ApiUrl', {
       value: httpApi.apiEndpoint,

@@ -28,6 +28,14 @@ enum AppConfig {
     // Sync interval
     static let syncIntervalSeconds: TimeInterval = 300 // 5 minutes
 
+    // Spotify
+    static let spotifyClientId = "afae49575c4f4c23a604d8eed2d9b4c4"
+    static let spotifyCallbackScheme = "tb3"
+    static let spotifyCallbackURL = "tb3://spotify"
+    static let spotifyAuthURL = "https://accounts.spotify.com/authorize"
+    static let spotifyTokenProxyURL = "\(apiURL)/spotify/token"
+    static let spotifyAPIBaseURL = "https://api.spotify.com/v1"
+
     // Strava
     static let stravaClientId = "203521"
     static let stravaCallbackScheme = "tb3"

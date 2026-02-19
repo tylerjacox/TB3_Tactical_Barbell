@@ -23,6 +23,15 @@ final class CastService {
     // Debounce timer for rapid state updates
     private var debounceTimer: Timer?
 
+    // Periodic sync timer — keeps Cast receiver in sync during active timer phases
+    private var syncTimer: Timer?
+
+    // Closure to fetch current session state for periodic sync (set by app at init)
+    var stateProvider: (() -> ActiveSessionState?)?
+
+    // Closure to fetch now-playing info for cast display
+    var nowPlayingProvider: (() -> SpotifyNowPlaying?)?
+
     init(castState: CastState) {
         self.castState = castState
     }
@@ -40,6 +49,8 @@ final class CastService {
         castSession = nil
         castState.connected = false
         castState.deviceName = nil
+        syncTimer?.invalidate()
+        syncTimer = nil
     }
 
     func updateDeviceName(_ name: String?) {
@@ -59,6 +70,7 @@ final class CastService {
         debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.sendMessageImmediate(state)
+                self?.updateSyncTimer(hasTimer: state?.timerState != nil)
             }
         }
     }
@@ -66,6 +78,29 @@ final class CastService {
     /// Send immediately (for initial connection, no debounce)
     func sendSessionStateImmediate(_ state: ActiveSessionState?) {
         sendMessageImmediate(state)
+        updateSyncTimer(hasTimer: state?.timerState != nil)
+    }
+
+    /// Start or stop periodic sync timer based on whether a workout timer is active.
+    /// Sends fresh elapsedMs every 5s so the Cast receiver stays in sync.
+    private func updateSyncTimer(hasTimer: Bool) {
+        if hasTimer && castState.connected {
+            guard syncTimer == nil else { return }
+            syncTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    guard let state = self.stateProvider?(), state.timerState != nil else {
+                        self.syncTimer?.invalidate()
+                        self.syncTimer = nil
+                        return
+                    }
+                    self.sendMessageImmediate(state)
+                }
+            }
+        } else {
+            syncTimer?.invalidate()
+            syncTimer = nil
+        }
     }
 
     private func sendMessageImmediate(_ state: ActiveSessionState?) {
@@ -108,6 +143,24 @@ final class CastService {
                 timerDict = ["phase": NSNull(), "startedAt": 0, "restDurationSeconds": NSNull(), "serverTimeNow": serverTimeNow]
             }
 
+            // Now playing (Spotify)
+            var nowPlayingDict: [String: Any]?
+            if let np = nowPlayingProvider?() {
+                var npDict: [String: Any] = [
+                    "trackName": np.trackName,
+                    "artistName": np.artistName,
+                    "isPlaying": np.isPlaying,
+                ]
+                // Send base64 data URI (Chromecast can't load external images)
+                if let base64Art = np.albumArtBase64 {
+                    npDict["albumArtURL"] = base64Art
+                } else if let artURL = np.albumArtURLLarge ?? np.albumArtURL {
+                    // Fallback to URL if base64 not yet downloaded
+                    npDict["albumArtURL"] = artURL
+                }
+                nowPlayingDict = npDict
+            }
+
             payload = [
                 "exerciseName": LiftName(rawValue: exercise?.liftName ?? "")?.displayName ?? (exercise?.liftName ?? ""),
                 "weight": exercise?.targetWeight ?? 0,
@@ -125,6 +178,7 @@ final class CastService {
                 "session": state.session,
                 "templateId": state.templateId,
                 "startedAt": state.startedAt,
+                "nowPlaying": nowPlayingDict as Any,
             ]
         } else {
             payload = ["idle": true]

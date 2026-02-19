@@ -5,6 +5,8 @@
   var timerInterval = null;
   var clockOffset = 0; // sender time - local time
   var sessionStartedAt = null; // ISO string from sender
+  var currentTimerPhase = null; // track phase for sync diffing
+  var currentTimerStartedAt = null; // local startedAt for drift detection
 
   // --- Audio Feedback (matches feedback.ts) ---
   var audioCtx = null;
@@ -162,6 +164,8 @@
     prevCompletedSets = -1;
     prevExerciseIndex = -1;
     prevTotalSets = 0;
+    currentTimerPhase = null;
+    currentTimerStartedAt = null;
     stopTimer();
   }
 
@@ -217,6 +221,9 @@
     }
     document.getElementById('exerciseProgress').innerHTML = progHtml;
 
+    // Now Playing (Spotify)
+    renderNowPlaying(d.nowPlaying);
+
     // --- Audio event detection (compare to previous state) ---
     if (prevCompletedSets >= 0) {
       // Check if exercise index changed (reset tracking for new exercise)
@@ -242,17 +249,31 @@
     prevExerciseIndex = d.currentExerciseIndex;
     prevTotalSets = d.totalSets;
 
-    // Two-phase timer
+    // Two-phase timer (with periodic sync drift correction)
     if (d.timer && d.timer.phase) {
       if (d.timer.elapsedMs !== undefined) {
-        // Sender computed elapsed at send time — convert to local startedAt
-        d.timer.startedAt = Date.now() - d.timer.elapsedMs;
-        clockOffset = 0;
+        var newStartedAt = Date.now() - d.timer.elapsedMs;
+
+        // Only reset timer if phase changed or drift exceeds 1 second
+        // This prevents visual jumps on periodic sync when already in sync
+        if (d.timer.phase !== currentTimerPhase ||
+            currentTimerStartedAt === null ||
+            Math.abs(newStartedAt - currentTimerStartedAt) > 1000) {
+          d.timer.startedAt = newStartedAt;
+          currentTimerPhase = d.timer.phase;
+          currentTimerStartedAt = newStartedAt;
+          clockOffset = 0;
+          updateTimer(d.timer);
+        }
       } else {
         clockOffset = d.timer.serverTimeNow - Date.now();
+        currentTimerPhase = d.timer.phase;
+        currentTimerStartedAt = d.timer.startedAt;
+        updateTimer(d.timer);
       }
-      updateTimer(d.timer);
     } else {
+      currentTimerPhase = null;
+      currentTimerStartedAt = null;
       stopTimer();
     }
   }
@@ -423,6 +444,30 @@
     }
     var el = document.getElementById('restTimer');
     el.classList.remove('active', 'overtime', 'exercise-phase');
+  }
+
+  function renderNowPlaying(np) {
+    var el = document.getElementById('nowPlaying');
+    if (!np || !np.trackName) {
+      el.classList.remove('active');
+      return;
+    }
+    el.classList.add('active');
+    document.getElementById('nowPlayingTrack').textContent = np.trackName;
+    document.getElementById('nowPlayingArtist').textContent = np.artistName || '';
+    var art = document.getElementById('nowPlayingArt');
+
+    if (np.albumArtURL) {
+      // albumArtURL is now a base64 data URI from iOS (or a URL fallback)
+      // Data URIs work directly as img src — no CORS issues
+      if (art.src !== np.albumArtURL) {
+        art.src = np.albumArtURL;
+        art.style.display = '';
+      }
+    } else {
+      art.src = '';
+      art.style.display = 'none';
+    }
   }
 
   function escapeHtml(str) {

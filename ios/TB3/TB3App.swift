@@ -53,6 +53,7 @@ struct RootView: View {
     @State private var castService: CastService?
     @State private var castAdapter: GCKCastSessionAdapter?
     @State private var stravaService: StravaService?
+    @State private var spotifyService: SpotifyService?
     @State private var notificationService = NotificationService()
     @State private var selectedTab = 0
 
@@ -89,6 +90,7 @@ struct RootView: View {
                     feedback: feedbackService,
                     castService: castService,
                     stravaService: stravaService,
+                    spotifyService: spotifyService,
                     liveActivityService: liveActivityService,
                     notificationService: notificationService
                 ))
@@ -170,7 +172,7 @@ struct RootView: View {
                 onNavigateToProfile: { selectedTab = 3 },
                 onStartWorkout: { exercises, week, program in
                     if let dataStore {
-                        let sessionVM = SessionViewModel(appState: appState, dataStore: dataStore, feedback: feedbackService, castService: castService, stravaService: stravaService, liveActivityService: liveActivityService, notificationService: notificationService)
+                        let sessionVM = SessionViewModel(appState: appState, dataStore: dataStore, feedback: feedbackService, castService: castService, stravaService: stravaService, spotifyService: spotifyService, liveActivityService: liveActivityService, notificationService: notificationService)
                         sessionVM.startSession(exercises: exercises, week: week, program: program)
                     }
                 }
@@ -188,7 +190,7 @@ struct RootView: View {
                     dataStore: dataStore,
                     authService: authService,
                     syncCoordinator: syncCoordinator
-                ), stravaService: stravaService, notificationService: notificationService)
+                ), stravaService: stravaService, spotifyService: spotifyService, notificationService: notificationService)
             }
         default:
             EmptyView()
@@ -237,6 +239,8 @@ struct RootView: View {
 
         // Cast setup
         let cast = CastService(castState: appState.castState)
+        cast.stateProvider = { [weak appState] in appState?.activeSession }
+        cast.nowPlayingProvider = { [weak appState] in appState?.spotifyState.nowPlaying }
         let adapter = GCKCastSessionAdapter(castService: cast, castState: appState.castState)
         adapter.onRequestSendState = { [weak cast] in
             cast?.sendSessionStateImmediate(appState.activeSession)
@@ -250,6 +254,12 @@ struct RootView: View {
         let strava = StravaService(stravaState: appState.stravaState, tokenManager: stravaTokenManager)
         await strava.restoreConnection()
         self.stravaService = strava
+
+        // Spotify setup
+        let spotifyTokenManager = SpotifyTokenManager()
+        let spotify = SpotifyService(spotifyState: appState.spotifyState, tokenManager: spotifyTokenManager)
+        await spotify.restoreConnection()
+        self.spotifyService = spotify
 
         // Initialize auth (check stored tokens, refresh)
         await auth.initAuth()
@@ -343,6 +353,7 @@ struct RootView: View {
                 feedback: feedbackService,
                 castService: castService,
                 stravaService: stravaService,
+                spotifyService: spotifyService,
                 liveActivityService: liveActivityService,
                 notificationService: notificationService
             )
