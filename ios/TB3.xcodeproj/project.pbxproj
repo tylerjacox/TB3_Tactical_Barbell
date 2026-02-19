@@ -126,6 +126,7 @@
 		E2AC87A9550DAF0059AAA8DC /* MigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE6083C8F2C9331E3165AC6 /* MigrationService.swift */; };
 		E522D1924093C448042CA6C0 /* StravaServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A41DDE2DF5006A91BB72387 /* StravaServiceTests.swift */; };
 		E558CFCA84221BCC54F0F12F /* MaxChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723EA4BC8564A3A9198DC7C6 /* MaxChartView.swift */; };
+		E5B3C1D4A8F927E6C3D10B85 /* SwipeGestureOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A7B9E2F3C8651A9B2E0D47 /* SwipeGestureOverlay.swift */; };
 		E5FCF3E4A03335ABE27589A1 /* LiveActivityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4397B27C417AA618BBB5F789 /* LiveActivityService.swift */; };
 		E7838664E8D85C20CF876F12 /* WeightRepsPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE45A044CD98411BAB4F9398 /* WeightRepsPicker.swift */; };
 		E8022F068BA0C48467DCE29D /* PersistedProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AAA6FD7003E87DD988265B /* PersistedProfile.swift */; };
@@ -295,6 +296,7 @@
 		CC43869E7BF890F0C474B7D5 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		D0EAE376B92E830AB0D77959 /* StravaTokenManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StravaTokenManager.swift; sourceTree = "<group>"; };
 		D38F5C0DCB90C667423B9FEC /* Step4StartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Step4StartView.swift; sourceTree = "<group>"; };
+		D4A7B9E2F3C8651A9B2E0D47 /* SwipeGestureOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeGestureOverlay.swift; sourceTree = "<group>"; };
 		D8A5006BC1CCA61F9F5C210F /* DerivedLiftEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DerivedLiftEntry.swift; sourceTree = "<group>"; };
 		DA98F7B155E47A0CB7906055 /* TestFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestFixtures.swift; sourceTree = "<group>"; };
 		DC4E1AA3F4BD8BA6BB6DFAFB /* EnumTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnumTests.swift; sourceTree = "<group>"; };
@@ -644,6 +646,7 @@
 				129E6D080CAE0EEDD0061BCE /* NumberInputField.swift */,
 				3572EF9A561E5986ED7C774B /* ScreenHeader.swift */,
 				178C8E940FA99AD06FB1FBF9 /* SessionPreviewCard.swift */,
+				D4A7B9E2F3C8651A9B2E0D47 /* SwipeGestureOverlay.swift */,
 				FE45A044CD98411BAB4F9398 /* WeightRepsPicker.swift */,
 			);
 			path = Components;
@@ -1070,6 +1073,7 @@
 				5AB65B221F765EB57FD8904F /* ScheduleGenerator.swift in Sources */,
 				957CA72D50DAC1837DEDCF45 /* ScreenHeader.swift in Sources */,
 				D835AEDA6171C0745F666A04 /* SessionPreviewCard.swift in Sources */,
+				E5B3C1D4A8F927E6C3D10B85 /* SwipeGestureOverlay.swift in Sources */,
 				56DCCCBFE40D30B64B3BB65C /* SessionView.swift in Sources */,
 				B91136B129C1CBABC983FB76 /* SessionViewModel.swift in Sources */,
 				396BF60C5C9B43E648C415BB /* SetDotIndicators.swift in Sources */,

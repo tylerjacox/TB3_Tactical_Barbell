@@ -56,6 +56,11 @@ struct RootView: View {
     @State private var spotifyService: SpotifyService?
     @State private var notificationService = NotificationService()
     @State private var selectedTab = 0
+    @State private var tabDirection: TabDirection = .none
+
+    private enum TabDirection {
+        case left, right, none
+    }
 
     var body: some View {
         ZStack {
@@ -153,14 +158,59 @@ struct RootView: View {
     private var mainTabView: some View {
         VStack(spacing: 0) {
             tabContent
+                .id(selectedTab)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipped()
-                .animation(.easeInOut(duration: 0.15), value: selectedTab)
+                .transition(tabTransition)
+                .animation(.spring(duration: 0.3, bounce: 0.0), value: selectedTab)
+                .overlay {
+                    SwipeGestureOverlay(
+                        onSwipeLeft: {
+                            if selectedTab < 3 {
+                                let generator = UIImpactFeedbackGenerator(style: .light)
+                                generator.impactOccurred()
+                                tabDirection = .left
+                                selectedTab += 1
+                            }
+                        },
+                        onSwipeRight: {
+                            if selectedTab > 0 {
+                                let generator = UIImpactFeedbackGenerator(style: .light)
+                                generator.impactOccurred()
+                                tabDirection = .right
+                                selectedTab -= 1
+                            }
+                        }
+                    )
+                }
 
-            CustomTabBar(selectedTab: $selectedTab)
+            CustomTabBar(selectedTab: Binding(
+                get: { selectedTab },
+                set: { newTab in
+                    tabDirection = newTab > selectedTab ? .left : newTab < selectedTab ? .right : .none
+                    selectedTab = newTab
+                }
+            ))
         }
         .ignoresSafeArea(.container, edges: .bottom)
         .ignoresSafeArea(.keyboard, edges: .bottom)
+    }
+
+    private var tabTransition: AnyTransition {
+        switch tabDirection {
+        case .left:
+            return .asymmetric(
+                insertion: .move(edge: .trailing),
+                removal: .move(edge: .leading)
+            )
+        case .right:
+            return .asymmetric(
+                insertion: .move(edge: .leading),
+                removal: .move(edge: .trailing)
+            )
+        case .none:
+            return .opacity
+        }
     }
 
     @ViewBuilder
