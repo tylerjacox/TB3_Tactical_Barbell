@@ -301,8 +301,8 @@ final class SpotifyService: NSObject {
         // Check liked status and download art when track changes
         if !sameTrack {
             Task { await checkIfLiked(trackId: trackId) }
-            // Download album art for Cast receiver (use medium ~300px image)
-            if let artURLString = albumArtURLLarge ?? albumArtURL {
+            // Download album art for Cast receiver (use smallest ~64px image to keep Cast payload small)
+            if let artURLString = albumArtURL ?? albumArtURLLarge {
                 Task { await downloadAlbumArt(trackId: trackId, urlString: artURLString) }
             }
         }
