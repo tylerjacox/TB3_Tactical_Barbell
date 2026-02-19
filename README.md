@@ -69,7 +69,7 @@ Per-lift line graphs with Day/Week/Month/Year/All time range filtering.
 
 ### Chromecast
 
-Cast your workout to any TV with a two-column layout optimized for 16:9 screens. Left side shows exercise, weight, and plate diagram; right side shows set progress, reps, and rest timer. Footer displays Spotify now-playing with album art, exercise progress bars, and session elapsed time. Clock updates in real time.
+Cast your workout to any TV with a two-column layout optimized for 16:9 screens. Left side shows exercise, weight, and plate diagram; right side shows set progress, reps, and rest timer. Footer displays Spotify now-playing track info, exercise progress bars, and session elapsed time. Clock updates in real time.
 
 <p align="center">
   <img src="docs/cast-screen.png" alt="Chromecast workout display with two-column layout" width="720">
@@ -77,14 +77,14 @@ Cast your workout to any TV with a two-column layout optimized for 16:9 screens.
 
 ### Spotify Integration
 
-See what's playing and control Spotify directly from the workout session screen. Album art, track name, and artist display on both the phone and Chromecast.
+See what's playing and control Spotify directly from the workout session screen. Album art, track name, and artist on the phone; track name and artist on Chromecast.
 
 - OAuth2 PKCE connect/disconnect from Profile → Integrations
 - Now-playing bar with album art, track name, and artist during workouts
 - Playback controls — previous, play/pause, next
 - Like/unlike tracks from the session screen (saved to your Spotify library)
-- Auto-polls every 5 seconds while a workout is active
-- Chromecast displays album art via base64 data URI (bypasses WebView CORS restrictions)
+- Auto-polls every 10 seconds while a workout is active
+- Chromecast displays track name and artist in footer
 - Client secret stays server-side via Lambda token proxy
 
 ### Strava Integration
