@@ -37,6 +37,10 @@ final class SpotifyService: NSObject {
     private var pollTimer: Timer?
     private var isPolling = false
 
+    /// Called when now-playing state changes (e.g., new track, play/pause)
+    /// Used to push updates to Chromecast
+    var onNowPlayingChanged: (() -> Void)?
+
     init(spotifyState: SpotifyState, tokenManager: SpotifyTokenManager) {
         self.spotifyState = spotifyState
         self.tokenManager = tokenManager
@@ -241,13 +245,17 @@ final class SpotifyService: NSObject {
 
             if spotifyState.nowPlaying != finalNP {
                 spotifyState.nowPlaying = finalNP
+                onNowPlayingChanged?()
             }
 
             if !sameTrack {
                 Task { await checkIfLiked(trackId: newNP.trackId) }
             }
         } else {
-            if spotifyState.nowPlaying != nil { spotifyState.nowPlaying = nil }
+            if spotifyState.nowPlaying != nil {
+                spotifyState.nowPlaying = nil
+                onNowPlayingChanged?()
+            }
         }
     }
 

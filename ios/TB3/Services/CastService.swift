@@ -146,17 +146,11 @@ final class CastService {
                 timerDict = ["phase": NSNull(), "startedAt": 0, "restDurationSeconds": NSNull(), "serverTimeNow": serverTimeNow]
             }
 
-            // Now playing (Spotify)
-            var nowPlayingDict: [String: Any]?
-            if let np = nowPlayingProvider?() {
-                nowPlayingDict = [
-                    "trackName": np.trackName,
-                    "artistName": np.artistName,
-                    "isPlaying": np.isPlaying,
-                ]
-            }
+            // Now playing — resolve before building payload
+            let np = nowPlayingProvider?()
 
-            payload = [
+            // Build payload (mutable — optional fields added only when present)
+            var mutablePayload: [String: Any] = [
                 "exerciseName": LiftName(rawValue: exercise?.liftName ?? "")?.displayName ?? (exercise?.liftName ?? ""),
                 "weight": exercise?.targetWeight ?? 0,
                 "unit": "lb",
@@ -173,9 +167,17 @@ final class CastService {
                 "session": state.session,
                 "templateId": state.templateId,
                 "startedAt": state.startedAt,
-                "nowPlaying": nowPlayingDict as Any,
-                "temperatureF": temperatureProvider?() as Any,
+                "npTrack": np?.trackName ?? "",
+                "npArtist": np?.artistName ?? "",
+                "npPlaying": np?.isPlaying ?? false,
             ]
+
+            // Temperature — only include when available
+            if let temp = temperatureProvider?() {
+                mutablePayload["temperatureF"] = temp
+            }
+
+            payload = mutablePayload
         } else {
             payload = ["idle": true]
         }

@@ -309,8 +309,18 @@ struct RootView: View {
         // Spotify setup
         let spotifyTokenManager = SpotifyTokenManager()
         let spotify = SpotifyService(spotifyState: appState.spotifyState, tokenManager: spotifyTokenManager)
+        spotify.onNowPlayingChanged = { [weak cast, weak appState] in
+            guard let cast, let appState else { return }
+            cast.sendSessionStateImmediate(appState.activeSession)
+        }
         await spotify.restoreConnection()
         self.spotifyService = spotify
+
+        // Start polling if there's an active session (onSessionAppeared may have fired
+        // before Spotify connected, so startPolling() would have silently failed)
+        if appState.activeSession != nil && appState.spotifyState.isConnected {
+            spotify.startPolling()
+        }
 
         // Initialize auth (check stored tokens, refresh)
         await auth.initAuth()

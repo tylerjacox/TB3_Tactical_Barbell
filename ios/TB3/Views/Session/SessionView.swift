@@ -117,6 +117,10 @@ struct SessionView: View {
             }
         }
         .background(Color.tb3Background)
+        .onAppear { vm.onSessionAppeared() }
+        .onChange(of: appState.spotifyState.isConnected) { _, isConnected in
+            if isConnected { vm.onSpotifyConnected() }
+        }
         .confirmDialog(isPresented: $vm.showEndConfirm, config: ConfirmDialogConfig(
             title: "End Workout?",
             message: "Your progress will be saved to history.",

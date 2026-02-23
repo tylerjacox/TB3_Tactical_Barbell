@@ -84,8 +84,8 @@ See what's playing and control Spotify directly from the workout session screen.
 - Now-playing bar with album art, track name, and artist during workouts
 - Playback controls — previous, play/pause, next
 - Like/unlike tracks from the session screen (saved to your Spotify library)
-- Auto-polls every 10 seconds while a workout is active
-- Chromecast displays track name and artist in footer
+- Auto-polls every 10 seconds while a workout is active; track changes push to Chromecast immediately
+- Chromecast displays track name and artist in footer (flat payload for reliable delivery)
 - Client secret stays server-side via Lambda token proxy
 
 ### Strava Integration

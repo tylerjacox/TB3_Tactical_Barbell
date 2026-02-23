@@ -141,15 +141,14 @@
 
   context.addCustomMessageListener(NAMESPACE, function(event) {
     try {
-      var data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+      var raw = event.data;
+      var data = typeof raw === 'string' ? JSON.parse(raw) : raw;
       if (data.idle) {
         showIdle();
       } else {
         renderWorkout(data);
       }
-    } catch (e) {
-      console.error('Cast message parse error:', e);
-    }
+    } catch (e) { /* ignore parse errors */ }
   });
 
   var options = new cast.framework.CastReceiverOptions();
@@ -229,8 +228,9 @@
       tempEl.textContent = '';
     }
 
-    // Now Playing (Spotify)
-    renderNowPlaying(d.nowPlaying);
+    // Now Playing (Spotify) — reads flattened top-level keys
+    var npData = d.npTrack ? { trackName: d.npTrack, artistName: d.npArtist || '', isPlaying: d.npPlaying } : null;
+    renderNowPlaying(npData);
 
     // --- Audio event detection (compare to previous state) ---
     if (prevCompletedSets >= 0) {

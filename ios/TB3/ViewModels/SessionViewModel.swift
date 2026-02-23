@@ -353,6 +353,7 @@ final class SessionViewModel {
         appState.isSessionPresented = true
         castService?.sendSessionStateImmediate(appState.activeSession)
         liveActivityService?.startActivity(session: session)
+
         spotifyService?.startPolling()
 
         // Fetch ambient temperature (async, doesn't block session start)
@@ -528,6 +529,16 @@ final class SessionViewModel {
         session.save()
         sendCastUpdate()
         sendLiveActivityUpdate()
+    }
+
+    // MARK: - Session Appeared (called from SessionView.onAppear)
+
+    func onSessionAppeared() {
+        spotifyService?.startPolling()
+    }
+
+    func onSpotifyConnected() {
+        spotifyService?.startPolling()
     }
 
     // MARK: - Spotify Controls
