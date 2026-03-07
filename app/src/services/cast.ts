@@ -127,8 +127,8 @@ function buildMessage(session: ActiveSessionState, profile: UserProfile): string
       : { phase: null, serverTimeNow: Date.now() },
     exercises: exercisesSummary,
     currentExerciseIndex,
-    week: session.programWeek,
-    session: session.programSession,
+    week: session.programWeek ?? 1,
+    session: session.programSession ?? 1,
     templateId: session.templateId,
     startedAt: session.startedAt,
   };

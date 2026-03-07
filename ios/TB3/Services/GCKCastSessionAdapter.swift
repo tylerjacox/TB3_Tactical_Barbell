@@ -1,5 +1,5 @@
 // TB3 iOS — GoogleCast SDK Bridge
-// Adapts GCKSessionManager events to CastService and wraps GCKGenericChannel
+// Adapts GCKSessionManager events to CastService and wraps GCKCastChannel
 // as CastSessionProtocol for message sending.
 
 import Foundation
@@ -11,7 +11,7 @@ final class GCKCastSessionAdapter: NSObject {
     private let castService: CastService
     private let castState: CastState
     private let namespace = AppConfig.castNamespace
-    private var channel: GCKGenericChannel?
+    private var channel: TB3CastChannel?
     private var sessionManager: GCKSessionManager?
 
     /// Called to request sending current workout state (set by RootView wiring).
@@ -50,16 +50,29 @@ final class GCKCastSessionAdapter: NSObject {
     // MARK: - Private Handlers
 
     private func handleSessionStarted(_ session: GCKCastSession) {
-        let ch = GCKGenericChannel(namespace: namespace)
+        // Remove old channel from previous session if any
+        if let oldChannel = channel {
+            oldChannel.onConnected = nil
+        }
+
+        // Create channel that notifies us when it's actually connected
+        let ch = TB3CastChannel(namespace: namespace)
+        ch.onConnected = { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.onChannelReady(ch)
+            }
+        }
         session.add(ch)
         channel = ch
 
+        castService.updateDeviceName(session.device.friendlyName)
+    }
+
+    private func onChannelReady(_ ch: TB3CastChannel) {
         let adapter = GCKChannelAdapter(channel: ch)
         castService.onSessionConnected(adapter)
-        castService.updateDeviceName(session.device.friendlyName)
 
         // Send state immediately + retry at 500ms and 1500ms
-        // (matches web app's connection race handling)
         notifyCurrentState()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.notifyCurrentState()
@@ -70,6 +83,9 @@ final class GCKCastSessionAdapter: NSObject {
     }
 
     private func handleSessionEnded() {
+        if let oldChannel = channel {
+            oldChannel.onConnected = nil
+        }
         channel = nil
         castService.onSessionDisconnected()
     }
@@ -123,13 +139,34 @@ extension GCKCastSessionAdapter: GCKSessionManagerListener {
     }
 }
 
+// MARK: - TB3CastChannel (subclass to get didConnect/didDisconnect callbacks)
+
+/// Custom GCKCastChannel subclass that provides connection lifecycle callbacks.
+/// GCKGenericChannel's delegate only exposes message reception, not connect/disconnect.
+final class TB3CastChannel: GCKCastChannel, @unchecked Sendable {
+    /// Fires on main thread when channel connects (ready to send messages).
+    var onConnected: (@Sendable () -> Void)?
+
+    override func didConnect() {
+        super.didConnect()
+        let callback = onConnected
+        DispatchQueue.main.async {
+            callback?()
+        }
+    }
+
+    override func didDisconnect() {
+        super.didDisconnect()
+    }
+}
+
 // MARK: - GCKChannelAdapter (CastSessionProtocol)
 
-/// Wraps GCKGenericChannel to implement CastSessionProtocol.
+/// Wraps GCKCastChannel to implement CastSessionProtocol.
 final class GCKChannelAdapter: CastSessionProtocol {
-    private let channel: GCKGenericChannel
+    private let channel: GCKCastChannel
 
-    init(channel: GCKGenericChannel) {
+    init(channel: GCKCastChannel) {
         self.channel = channel
     }
 

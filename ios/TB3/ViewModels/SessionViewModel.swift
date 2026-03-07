@@ -300,9 +300,11 @@ final class SessionViewModel {
         var sessionExercises: [ActiveSessionExercise] = []
         var sets: [SessionSet] = []
 
-        let totalSets = week.setsRange.last ?? 3
+        let defaultSets = week.setsRange.last ?? 3
 
         for (i, exercise) in exercises.enumerated() {
+            let totalSets = exercise.targetSets ?? defaultSets
+
             sessionExercises.append(ActiveSessionExercise(
                 liftName: exercise.liftName,
                 targetWeight: exercise.targetWeight,

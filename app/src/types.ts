@@ -99,6 +99,7 @@ export interface ComputedExercise {
   plateBreakdown: string;
   plateBreakdownPerSide: { weight: number; count: number }[];
   achievable: boolean;
+  targetSets?: number; // Per-exercise fixed set count override
 }
 
 export interface ActiveSessionState {

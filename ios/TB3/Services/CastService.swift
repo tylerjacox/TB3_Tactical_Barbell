@@ -60,6 +60,28 @@ final class CastService {
         syncTimer = nil
     }
 
+    /// Called when app enters background — stop sync timer (iOS suspends it anyway).
+    func onBackground() {
+        syncTimer?.invalidate()
+        syncTimer = nil
+    }
+
+    /// Called when app returns to foreground — resync Cast receiver with retries.
+    /// The channel may briefly disconnect/reconnect after background; retries handle timing.
+    func onForeground() {
+        guard castState.connected, castSession != nil else { return }
+        guard let state = stateProvider?() else { return }
+        sendSessionStateImmediate(state)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self, let state = self.stateProvider?() else { return }
+            self.sendMessageImmediate(state)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            guard let self, let state = self.stateProvider?() else { return }
+            self.sendMessageImmediate(state)
+        }
+    }
+
     func updateDeviceName(_ name: String?) {
         castState.deviceName = name
     }

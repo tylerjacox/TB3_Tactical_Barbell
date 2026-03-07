@@ -126,6 +126,11 @@ struct RootView: View {
             switch newPhase {
             case .active:
                 syncCoordinator?.onForeground()
+                castService?.onForeground()
+                // Restart Spotify polling if mid-session (timer stalls in background)
+                if appState.activeSession != nil, appState.spotifyState.isConnected {
+                    spotifyService?.startPolling()
+                }
                 handleIntentFlags()
                 // Cancel rest timer notification on return to foreground
                 if appState.profile.restTimerAlertsEnabled {
@@ -134,6 +139,8 @@ struct RootView: View {
                 // Open session if user tapped rest timer notification
                 handleNotificationTap()
             case .background:
+                castService?.onBackground()
+                spotifyService?.stopPolling()
                 // Schedule rest timer notification if in rest phase
                 if appState.profile.restTimerAlertsEnabled,
                    let session = appState.activeSession,

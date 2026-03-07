@@ -28,6 +28,7 @@ export interface SessionDef {
   lifts?: string[]; // Lift names or slot references like 'cluster' or 'A' / 'B'
   liftSource?: 'fixed' | 'cluster' | 'A' | 'B';
   repsOverride?: number | number[];
+  setsOverride?: Record<string, number>; // Per-lift fixed set count (e.g. { 'Deadlift': 3 })
 }
 
 export interface LiftSlotDef {
@@ -60,7 +61,7 @@ export const OPERATOR: TemplateDef = {
   sessionDefs: [
     { sessionNumber: 1, lifts: ['Squat', 'Bench', 'Weighted Pull-up'], liftSource: 'fixed' },
     { sessionNumber: 2, lifts: ['Squat', 'Bench', 'Weighted Pull-up'], liftSource: 'fixed' },
-    { sessionNumber: 3, lifts: ['Squat', 'Bench', 'Deadlift'], liftSource: 'fixed' },
+    { sessionNumber: 3, lifts: ['Squat', 'Bench', 'Deadlift'], liftSource: 'fixed', setsOverride: { 'Deadlift': 3 } },
   ],
 };
 

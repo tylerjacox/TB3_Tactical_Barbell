@@ -71,7 +71,7 @@ function PreSessionSetup() {
       return {
         liftName: ex.liftName,
         targetWeight: ex.targetWeight,
-        targetSets,
+        targetSets: ex.targetSets ?? targetSets,
         targetReps: reps,
         plateBreakdown: ex.plateBreakdownPerSide,
       };

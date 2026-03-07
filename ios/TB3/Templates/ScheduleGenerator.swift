@@ -55,6 +55,7 @@ enum ScheduleGenerator {
                 }
 
                 let exercises: [ComputedExercise] = sessionLifts.map { liftName in
+                    let liftSetsOverride = sessionDef.setsOverride?[liftName]
                     guard let lift = liftMap[liftName] else {
                         return ComputedExercise(
                             liftName: liftName,
@@ -62,7 +63,8 @@ enum ScheduleGenerator {
                             plateBreakdown: "Set 1RM for \(liftName)",
                             plates: [],
                             isBodyweight: liftName == LiftName.weightedPullUp.rawValue,
-                            achievable: false
+                            achievable: false,
+                            targetSets: liftSetsOverride
                         )
                     }
 
@@ -92,7 +94,8 @@ enum ScheduleGenerator {
                         plateBreakdown: plateResult.displayText,
                         plates: plateResult.plates,
                         isBodyweight: lift.isBodyweight,
-                        achievable: plateResult.achievable
+                        achievable: plateResult.achievable,
+                        targetSets: liftSetsOverride
                     )
                 }
 

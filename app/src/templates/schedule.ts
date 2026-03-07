@@ -53,6 +53,7 @@ export function generateSchedule(
 
       const exercises: ComputedExercise[] = sessionLifts.map((liftName) => {
         const lift = liftMap.get(liftName);
+        const liftSetsOverride = sessionDef.setsOverride?.[liftName];
         if (!lift) {
           return {
             liftName,
@@ -60,6 +61,7 @@ export function generateSchedule(
             plateBreakdown: `Set 1RM for ${liftName}`,
             plateBreakdownPerSide: [],
             achievable: false,
+            ...(liftSetsOverride != null ? { targetSets: liftSetsOverride } : {}),
           };
         }
 
@@ -79,6 +81,7 @@ export function generateSchedule(
           plateBreakdown: plateResult.displayText,
           plateBreakdownPerSide: plateResult.plates,
           achievable: plateResult.achievable,
+          ...(liftSetsOverride != null ? { targetSets: liftSetsOverride } : {}),
         };
       });
 
@@ -147,7 +150,7 @@ export function computeSourceHash(
     templateVersion: template ? {
       sessionsPerWeek: template.sessionsPerWeek,
       durationWeeks: template.durationWeeks,
-      sessionDefs: template.sessionDefs.map((s) => ({ n: s.sessionNumber, lifts: s.lifts, src: s.liftSource })),
+      sessionDefs: template.sessionDefs.map((s) => ({ n: s.sessionNumber, lifts: s.lifts, src: s.liftSource, so: s.setsOverride })),
       weeks: template.weeks.map((w) => ({ pct: w.percentage, sets: w.setsRange, reps: w.repsPerSet })),
     } : null,
   });

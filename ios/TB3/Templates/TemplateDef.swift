@@ -29,6 +29,15 @@ struct SessionDef: Equatable {
     let lifts: [String]?
     let liftSource: LiftSource?
     let repsOverride: RepsPerSet?
+    let setsOverride: [String: Int]? // Per-lift fixed set count (e.g. ["Deadlift": 3])
+
+    init(sessionNumber: Int, lifts: [String]? = nil, liftSource: LiftSource? = nil, repsOverride: RepsPerSet? = nil, setsOverride: [String: Int]? = nil) {
+        self.sessionNumber = sessionNumber
+        self.lifts = lifts
+        self.liftSource = liftSource
+        self.repsOverride = repsOverride
+        self.setsOverride = setsOverride
+    }
 }
 
 enum LiftSource: String, Equatable {

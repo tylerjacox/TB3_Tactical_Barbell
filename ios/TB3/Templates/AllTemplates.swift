@@ -27,7 +27,7 @@ enum Templates {
         sessionDefs: [
             SessionDef(sessionNumber: 1, lifts: ["Squat", "Bench", "Weighted Pull-up"], liftSource: .fixed, repsOverride: nil),
             SessionDef(sessionNumber: 2, lifts: ["Squat", "Bench", "Weighted Pull-up"], liftSource: .fixed, repsOverride: nil),
-            SessionDef(sessionNumber: 3, lifts: ["Squat", "Bench", "Deadlift"], liftSource: .fixed, repsOverride: nil),
+            SessionDef(sessionNumber: 3, lifts: ["Squat", "Bench", "Deadlift"], liftSource: .fixed, repsOverride: nil, setsOverride: ["Deadlift": 3]),
         ],
         recommendedDays: [3]
     )

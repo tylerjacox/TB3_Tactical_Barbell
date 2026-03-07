@@ -35,6 +35,7 @@ struct ComputedExercise: Codable, Equatable {
     var plates: [PlateCount]
     var isBodyweight: Bool
     var achievable: Bool
+    var targetSets: Int? // Per-exercise fixed set count override
 }
 
 struct PlateCount: Codable, Equatable {

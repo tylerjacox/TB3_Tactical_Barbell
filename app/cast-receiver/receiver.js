@@ -195,7 +195,7 @@
 
     // Header
     document.getElementById('weekSession').textContent =
-      'Week ' + d.week + ' \u2014 Session ' + d.session;
+      'Week ' + (d.week || '?') + ' \u2014 Session ' + (d.session || '?');
     document.getElementById('templateName').textContent =
       d.templateId.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
 

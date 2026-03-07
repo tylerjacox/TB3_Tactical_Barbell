@@ -49,9 +49,19 @@ final class SpotifyService: NSObject {
     // MARK: - Restore Connection (app launch)
 
     func restoreConnection() async {
-        if let tokens = await tokenManager.getStoredTokens() {
-            spotifyState.isConnected = true
-            spotifyState.userName = tokens.userName
+        guard let tokens = await tokenManager.getStoredTokens() else { return }
+
+        spotifyState.isConnected = true
+        spotifyState.userName = tokens.userName
+
+        // If access token is expired, try refreshing now to validate the refresh token
+        let tokenValid = Date().timeIntervalSince1970 < tokens.expiresAt - 300
+        if !tokenValid {
+            let refreshed = await tokenManager.refreshTokens()
+            if refreshed == nil {
+                // Refresh token is dead — mark for reauth so UI can prompt
+                spotifyState.needsReauth = true
+            }
         }
     }
 
@@ -199,7 +209,7 @@ final class SpotifyService: NSObject {
     // MARK: - Now Playing (Polling)
 
     func startPolling() {
-        guard spotifyState.isConnected, !isPolling else { return }
+        guard spotifyState.isConnected, !isPolling, !spotifyState.needsReauth else { return }
         isPolling = true
         // Fetch immediately, then every 10 seconds
         Task { await fetchNowPlaying() }
@@ -219,6 +229,11 @@ final class SpotifyService: NSObject {
     func fetchNowPlaying() async {
         guard let accessToken = await tokenManager.getValidAccessToken() else {
             if spotifyState.nowPlaying != nil { spotifyState.nowPlaying = nil }
+            // Token refresh failed — flag for reauth and stop polling
+            if spotifyState.isConnected {
+                spotifyState.needsReauth = true
+                stopPolling()
+            }
             return
         }
 
