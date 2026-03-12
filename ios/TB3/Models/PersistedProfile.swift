@@ -18,6 +18,7 @@ final class PersistedProfile {
     var unit: String = "lb"
     var workoutRemindersEnabled: Bool = false
     var restTimerAlertsEnabled: Bool = false
+    var exerciseTimerEnabled: Bool = true
     var lastModified: String = ""
 
     init() {
@@ -58,6 +59,7 @@ final class PersistedProfile {
         )
         profile.workoutRemindersEnabled = workoutRemindersEnabled
         profile.restTimerAlertsEnabled = restTimerAlertsEnabled
+        profile.exerciseTimerEnabled = exerciseTimerEnabled
         return profile
     }
 
@@ -76,6 +78,7 @@ final class PersistedProfile {
         lastModified = sync.lastModified
         workoutRemindersEnabled = sync.workoutRemindersEnabled
         restTimerAlertsEnabled = sync.restTimerAlertsEnabled
+        exerciseTimerEnabled = sync.exerciseTimerEnabled
     }
 
     // MARK: - Typed accessors

@@ -19,9 +19,10 @@ struct SyncProfile: Codable, Equatable {
     var unit: String
     var lastModified: String
 
-    // Device-local notification prefs (not synced to PWA)
+    // Device-local prefs (not synced to PWA)
     var workoutRemindersEnabled: Bool = false
     var restTimerAlertsEnabled: Bool = false
+    var exerciseTimerEnabled: Bool = true
 
     private enum CodingKeys: String, CodingKey {
         case maxType, roundingIncrement, barbellWeight

@@ -276,6 +276,12 @@ struct ProfileView: View {
                     .foregroundStyle(Color.tb3Muted)
             }
 
+            // Exercise Timer
+            Toggle("Exercise Timer", isOn: Binding(
+                get: { appState.profile.exerciseTimerEnabled },
+                set: { vm.updateExerciseTimer($0) }
+            ))
+
             // Sound Mode
             Picker("Sound", selection: Binding(
                 get: { appState.profile.soundMode },

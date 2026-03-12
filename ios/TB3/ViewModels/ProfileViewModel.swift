@@ -171,6 +171,11 @@ final class ProfileViewModel {
         }
     }
 
+    func updateExerciseTimer(_ enabled: Bool) {
+        appState.profile.exerciseTimerEnabled = enabled
+        saveProfile()
+    }
+
     func updateRestTimerAlerts(_ enabled: Bool, notificationService: NotificationService?) {
         guard let notificationService else { return }
         Task {

@@ -153,13 +153,17 @@ final class SessionViewModel {
     func completeSet() {
         guard var session = appState.activeSession else { return }
 
-        // If in rest phase → transition to exercise phase
+        // If in rest phase → transition to exercise phase (or clear timer if exercise timer disabled)
         if let timer = session.timerState, timer.phase == .rest {
-            session.timerState = TimerState(
-                phase: .exercise,
-                startedAt: Date().timeIntervalSince1970 * 1000,
-                restDurationSeconds: nil
-            )
+            if appState.profile.exerciseTimerEnabled {
+                session.timerState = TimerState(
+                    phase: .exercise,
+                    startedAt: Date().timeIntervalSince1970 * 1000,
+                    restDurationSeconds: nil
+                )
+            } else {
+                session.timerState = nil
+            }
             lastAnnouncedSecond = nil
             restCompleteFired = false
             lastPushedOvertime = false
