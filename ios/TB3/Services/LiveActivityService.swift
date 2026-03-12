@@ -52,8 +52,10 @@ final class LiveActivityService {
     // MARK: - End
 
     func endActivity() {
-        guard let activity = currentActivity else { return }
+        currentActivity = nil
 
+        // End ALL running activities of this type — handles normal flow,
+        // app restart (currentActivity lost), and any stale activities.
         let finalState = WorkoutActivityAttributes.ContentState(
             exerciseName: "Complete",
             exerciseIndex: 0,
@@ -66,14 +68,13 @@ final class LiveActivityService {
             restDurationSeconds: nil,
             isOvertime: false
         )
-
         let content = ActivityContent(state: finalState, staleDate: nil)
 
         Task {
-            await activity.end(content, dismissalPolicy: .immediate)
+            for activity in Activity<WorkoutActivityAttributes>.activities {
+                await activity.end(content, dismissalPolicy: .immediate)
+            }
         }
-
-        currentActivity = nil
     }
 
     // MARK: - Build State

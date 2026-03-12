@@ -318,9 +318,11 @@ struct RootView: View {
         // Load data from SwiftData
         appState.loadInitialData(store)
 
-        // Restart Live Activity for crash-recovered session
+        // Restart Live Activity for crash-recovered session, or clean up stale ones
         if let activeSession = appState.activeSession {
             liveActivityService.startActivity(session: activeSession)
+        } else {
+            liveActivityService.endActivity()
         }
 
         // Configure feedback from profile settings
