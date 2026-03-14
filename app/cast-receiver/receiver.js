@@ -211,7 +211,7 @@
     var allDone = d.completedSets >= d.totalSets;
     document.getElementById('reps').textContent = allDone
       ? 'All sets complete'
-      : '\u00D7 ' + d.targetReps + ' reps';
+      : '\u00D7 ' + (d.repsLabel || d.targetReps) + ' reps';
 
     // Set dots
     var dotsHtml = '';

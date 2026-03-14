@@ -153,7 +153,7 @@ final class SessionViewModel {
     func completeSet() {
         guard var session = appState.activeSession else { return }
 
-        // If in rest phase → transition to exercise phase (or clear timer if exercise timer disabled)
+        // If in rest phase → transition to exercise phase (or skip if exercise timer disabled)
         if let timer = session.timerState, timer.phase == .rest {
             if appState.profile.exerciseTimerEnabled {
                 session.timerState = TimerState(
@@ -161,17 +161,21 @@ final class SessionViewModel {
                     startedAt: Date().timeIntervalSince1970 * 1000,
                     restDurationSeconds: nil
                 )
-            } else {
-                session.timerState = nil
+                lastAnnouncedSecond = nil
+                restCompleteFired = false
+                lastPushedOvertime = false
+                appState.activeSession = session
+                session.save()
+                sendCastUpdate()
+                sendLiveActivityUpdate()
+                return
             }
+            // Exercise timer disabled — clear rest timer and fall through to record the set
+            session.timerState = nil
             lastAnnouncedSecond = nil
             restCompleteFired = false
             lastPushedOvertime = false
             appState.activeSession = session
-            session.save()
-            sendCastUpdate()
-            sendLiveActivityUpdate()
-            return
         }
 
         // Record set completion

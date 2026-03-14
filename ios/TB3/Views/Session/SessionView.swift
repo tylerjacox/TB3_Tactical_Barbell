@@ -276,8 +276,8 @@ struct SessionView: View {
                     .controlSize(.large)
                     .disabled(true)
                 }
-            } else if vm.timerPhase == .rest {
-                // Rest phase: "Begin Set X"
+            } else if vm.timerPhase == .rest && appState.profile.exerciseTimerEnabled {
+                // Rest phase with exercise timer: "Begin Set X"
                 Button {
                     vm.completeSet()
                 } label: {

@@ -221,6 +221,13 @@ final class CastService {
                 "totalSets": totalSets,
                 "completedSets": completedSets,
                 "targetReps": nextSet?.targetReps ?? 0,
+                "repsLabel": {
+                    switch exercise?.repsPerSet {
+                    case .single(let r): return "\(r)"
+                    case .array(let arr): return arr.map(String.init).joined(separator: "-")
+                    case nil: return "0"
+                    }
+                }(),
                 "timer": timerDict,
                 "exercises": exerciseSummaries,
                 "currentExerciseIndex": state.currentExerciseIndex,
